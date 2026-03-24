@@ -6,12 +6,10 @@
     <title>Phần Mềm Kho Đơn Giản</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
-        /* Tùy chỉnh cực to rõ cho người lớn tuổi */
         body { font-family: Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 15px; color: #111; }
         .container { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto; }
         h2 { text-align: center; color: #003366; font-size: 26px; margin-top: 0; border-bottom: 2px solid #ddd; padding-bottom: 15px; }
         
-        /* Menu chính */
         #main-menu { text-align: center; padding: 10px 0; }
         .menu-btn { display: block; width: 100%; padding: 25px; margin-bottom: 20px; font-size: 22px; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; color: white; }
         .btn-scan { background-color: #0056b3; }
@@ -19,40 +17,33 @@
         .btn-view { background-color: #008000; }
         .btn-back { background-color: #555; color: white; padding: 18px; width: 100%; border: none; border-radius: 10px; margin-bottom: 20px; font-size: 20px; font-weight: bold; cursor: pointer;}
 
-        /* Khung Section */
-        #scanner-section, #input-form, #inventory-section, #manual-section { display: none; }
+        #scanner-section, #input-form, #inventory-section { display: none; }
         #reader { width: 100%; border-radius: 10px; border: 3px solid #0056b3; overflow: hidden; margin-bottom: 20px; }
         
-        /* Hiển thị thông tin to rõ */
         .sp-info { font-size: 20px; color: #333; margin-bottom: 10px; text-align: center; }
         .qty-info { font-size: 26px; font-weight: bold; color: #d10000; margin-bottom: 25px; text-align: center; background: #ffe6e6; padding: 10px; border-radius: 10px;}
         
-        /* Ô nhập liệu */
         .form-group { margin-bottom: 25px; text-align: left;}
         label { font-weight: bold; font-size: 18px; color: #111; display: block; margin-bottom: 10px; }
         input, select { width: 100%; padding: 18px; font-size: 20px; border: 2px solid #ccc; border-radius: 10px; box-sizing: border-box; background-color: #fff;}
         input:focus, select:focus { border-color: #0056b3; outline: none; background-color: #f0f8ff;}
         input:disabled { background-color: #e0e0e0; color: #555; }
         
-        /* Nút Lưu / Hủy */
         .btn-group { display: flex; gap: 15px; margin-top: 30px; }
         .btn-group button { padding: 20px; font-size: 22px; font-weight: bold; border: none; border-radius: 10px; cursor: pointer; flex: 1; }
         .btn-submit { background-color: #0056b3; color: white; }
         .btn-cancel { background-color: #cc0000; color: white; }
 
-        /* Khung thông báo */
-        #status { padding: 20px; border-radius: 10px; font-weight: bold; font-size: 20px; margin-top: 20px; text-align: center; display: none;}
+        #status { padding: 20px; border-radius: 10px; font-weight: bold; font-size: 20px; margin-top: 20px; text-align: center; display: none; line-height: 1.5;}
         .success { background-color: #ccffcc; color: #006600; display: block !important;}
         .error { background-color: #ffcccc; color: #cc0000; display: block !important;}
         .loading { background-color: #e6f2ff; color: #003366; display: block !important;}
 
-        /* Bảng Tồn Kho */
         .search-box { margin-bottom: 15px; }
         .search-box input { border: 2px solid #008000; background-color: #f0fff0; }
         
-        /* Thêm hiệu ứng khi bấm vào dòng tồn kho */
         .inv-item { display: flex; justify-content: space-between; align-items: center; padding: 18px 10px; border-bottom: 2px solid #ddd; text-align: left; cursor: pointer; border-radius: 8px;}
-        .inv-item:active { background-color: #e0e0e0; } /* Đổi màu xám nhạt khi chạm vào */
+        .inv-item:active { background-color: #e0e0e0; } 
         
         .inv-name { font-weight: bold; color: #111; font-size: 22px; margin-bottom: 5px;}
         .inv-code { font-size: 16px; color: #666; }
@@ -62,7 +53,7 @@
 <body>
 
     <div class="container">
-        <h2>📦 QUẢN LÝ KHO</h2>
+        <h2>📦 QUẢN LÝ KHO TỔNG</h2>
         
         <div id="main-menu">
             <button class="menu-btn btn-scan" onclick="openScanner()">📷 QUÉT MÃ VẠCH</button>
@@ -71,54 +62,66 @@
         </div>
 
         <div id="scanner-section">
-            <button class="btn-back" onclick="goBackToMenu()">⬅ QUAY LẠI MÀN HÌNH CHÍNH</button>
+            <button class="btn-back" onclick="goBackToMenu()">⬅ QUAY LẠI TỪ ĐẦU</button>
             <div id="reader"></div>
         </div>
 
         <div id="inventory-section">
-            <button class="btn-back" onclick="goBackToMenu()">⬅ QUAY LẠI MÀN HÌNH CHÍNH</button>
+            <button class="btn-back" onclick="goBackToMenu()">⬅ QUAY LẠI TỪ ĐẦU</button>
             <div class="search-box">
-                <input type="text" id="inv-search" placeholder="🔍 Gõ để tìm nhanh sản phẩm..." oninput="filterInventory()">
+                <input type="text" id="inv-search" placeholder="🔍 Gõ tên sản phẩm để tìm..." oninput="filterInventory()">
             </div>
-            <p style="text-align: center; color: #666; margin-bottom: 15px; font-style: italic;">(Chạm vào sản phẩm để Nhập/Xuất)</p>
+            <p style="text-align: center; color: #666; margin-bottom: 15px; font-style: italic;">(Chạm vào một món để Cập nhật kho)</p>
             <div id="inventory-list"></div>
         </div>
 
         <div id="input-form">
             <div class="sp-info" id="display-maSP" style="display:none;">Mã hàng: </div>
-            <div class="qty-info" id="sp-qty">Tồn kho đang có: 0</div>
+            <div class="qty-info" id="sp-qty">Tồn trên máy đang báo: 0</div>
             
             <div class="form-group" id="group-search">
-                <label>Sản Phẩm Đang Chọn:</label>
-                <input type="text" id="manual-prod" list="prod-datalist" placeholder="Nhấp vào đây..." onchange="onManualSelect()">
+                <label>Bấm vào đây để chọn Sản Phẩm:</label>
+                <input type="text" id="manual-prod" list="prod-datalist" placeholder="Ví dụ: Bánh Tráng..." onchange="onManualSelect()">
                 <datalist id="prod-datalist"></datalist>
             </div>
 
-            <div class="form-group" id="group-prod-name" style="display:none;">
-                <label>Tên Sản Phẩm:</label>
-                <input type="text" id="prod-name">
+            <div id="new-item-section" style="display:none; padding: 15px; background: #fff5e6; border-radius: 10px; margin-bottom: 25px; border: 2px dashed #ff9900;">
+                <p style="color: #d97706; font-weight:bold; margin-top:0; text-align:center;">✨ HÀNG MỚI - XIN ĐIỀN THÔNG TIN ✨</p>
+                <div class="form-group">
+                    <label>Tên Sản Phẩm:</label>
+                    <input type="text" id="prod-name">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label>Phân Loại (Để xếp quầy):</label>
+                    <select id="prod-category">
+                        <option value="BÁNH">BÁNH</option><option value="KẸO">KẸO</option>
+                        <option value="NƯỚC NGỌT">NƯỚC NGỌT</option><option value="NƯỚC SUỐI">NƯỚC SUỐI</option>
+                        <option value="NƯỚC TRÀ">NƯỚC TRÀ</option><option value="KEM">KEM</option>
+                        <option value="SỮA">SỮA</option><option value="KHÁC">KHÁC</option>
+                    </select>
+                </div>
             </div>
             
             <div class="form-group">
-                <label>Loại Giao Dịch:</label>
-                <select id="trans-type" onchange="toggleObjList()">
-                    <option value="IN" selected>NHẬP HÀNG VÀO KHO</option>
-                    <option value="OUT">XUẤT HÀNG BÁN ĐI</option>
+                <label>Hôm nay cô chú muốn làm gì?</label>
+                <select id="trans-type" onchange="toggleFormLogic()" style="background-color: #e6f7ff; border-color: #0056b3; font-weight: bold; color: #0056b3;">
+                    <option value="IN" selected>NHẬP HÀNG TỪ XE TẢI (Cộng thêm)</option>
+                    <option value="COUNT">KIỂM KÊ CUỐI NGÀY (Chốt số lượng)</option>
                 </select>
             </div>
 
             <div class="form-group">
-                <label>Số Lượng Cần Nhập/Xuất:</label>
-                <input type="number" id="input-amount" value="1" min="1">
+                <label id="label-amount" style="color: #d10000;">Nhập Số Lượng Cần Thêm Vào:</label>
+                <input type="number" id="input-amount" value="1" min="0" style="font-size: 24px; font-weight: bold; text-align: center;">
             </div>
 
-            <div class="form-group">
-                <label id="label-doi-tuong">Nhà Cung Cấp:</label>
+            <div class="form-group" id="group-obj">
+                <label>Nhà Cung Cấp giao hàng:</label>
                 <select id="obj-select"></select>
             </div>
 
             <div class="form-group">
-                <label>Ngày Giao Dịch:</label>
+                <label>Ngày Ghi Sổ:</label>
                 <input type="date" id="trans-date">
             </div>
 
@@ -132,7 +135,6 @@
     </div>
 
     <script>
-        // BẠN DÁN LINK APP SCRIPT CỦA BẠN VÀO ĐÂY (Giữ nguyên ngoặc kép)
         const API_URL = "https://script.google.com/macros/s/AKfycbxZi7yFbogjlAfeRKAUkVXKnkYYli0MmByKCpVSNwuK-9_CWLHBijH8fF5trnmIX1yW0A/exec"; 
         
         const mainMenu = document.getElementById('main-menu');
@@ -143,20 +145,19 @@
         
         const transTypeSelect = document.getElementById('trans-type');
         const objSelect = document.getElementById('obj-select');
-        const labelDoiTuong = document.getElementById('label-doi-tuong');
+        const labelAmount = document.getElementById('label-amount');
         const manualProdInput = document.getElementById('manual-prod');
+        const newItemSection = document.getElementById('new-item-section');
         
         let html5QrCode;
         let isProcessing = false;
         let currentScannedCode = ""; 
         let formMode = "SCAN"; 
         
-        let cachedCustomers = [];
-        let cachedVendors = [];
-        let cachedProducts = [];
+        let cachedCustomers = [], cachedVendors = [], cachedProducts = [];
 
         window.onload = function() {
-            showStatus("Đang nạp dữ liệu hệ thống...", "loading");
+            showStatus("Đang tải dữ liệu, cô chú đợi xíu...", "loading");
             fetchDataInit();
         };
 
@@ -169,281 +170,223 @@
             .then(res => res.json())
             .then(data => {
                 if(data.status === 'success') {
-                    cachedCustomers = data.customers;
-                    cachedVendors = data.vendors;
-                    cachedProducts = data.products;
+                    cachedCustomers = data.customers; cachedVendors = data.vendors; cachedProducts = data.products;
                     
                     let dl = document.getElementById('prod-datalist');
                     dl.innerHTML = "";
                     cachedProducts.forEach(p => {
                         let opt = document.createElement('option');
-                        opt.value = `${p.maSP} - ${p.tenSP}`;
-                        dl.appendChild(opt);
+                        opt.value = `${p.maSP} - ${p.tenSP}`; dl.appendChild(opt);
                     });
-                    
                     statusDiv.style.display = "none";
                 }
-            })
-            .catch(err => {
-                showStatus("Mạng yếu, chưa tải được danh sách.", "error");
-            });
+            }).catch(err => { showStatus("Mạng yếu, mở lại giùm con nhe.", "error"); });
         }
 
         function getToday() { return new Date().toISOString().split('T')[0]; }
-
-        function showStatus(msg, type) {
-            statusDiv.innerText = msg;
-            statusDiv.className = type;
-        }
+        function showStatus(msg, type) { statusDiv.innerHTML = msg; statusDiv.className = type; }
 
         function goBackToMenu() {
-            if (html5QrCode && html5QrCode.isScanning) { html5QrCode.stop().catch(err => console.log(err)); }
-            scannerSection.style.display = "none";
-            inputForm.style.display = "none";
-            inventorySection.style.display = "none";
-            statusDiv.style.display = "none";
-            mainMenu.style.display = "block";
-            isProcessing = false;
+            if (html5QrCode && html5QrCode.isScanning) { html5QrCode.stop().catch(e => console.log(e)); }
+            scannerSection.style.display = "none"; inputForm.style.display = "none";
+            inventorySection.style.display = "none"; statusDiv.style.display = "none";
+            mainMenu.style.display = "block"; isProcessing = false;
         }
 
-        function toggleObjList() {
+        // TỰ ĐỘNG ĐỔI GIAO DIỆN THEO NHẬP KHO HAY KIỂM KÊ
+        function toggleFormLogic() {
             let type = transTypeSelect.value;
             objSelect.innerHTML = ""; 
             
             if(type === "IN") {
-                labelDoiTuong.innerText = "Nhà Cung Cấp:";
+                labelAmount.innerText = "NHẬP SỐ LƯỢNG GIAO TỚI (Cộng Thêm):";
+                labelAmount.style.color = "#0056b3";
+                document.getElementById('group-obj').style.display = "block";
+                
                 let opt = document.createElement('option'); opt.value = "Nhà cung cấp lẻ"; opt.text = "Nhà cung cấp lẻ"; objSelect.appendChild(opt);
                 cachedVendors.forEach(name => { let o = document.createElement('option'); o.value = name; o.text = name; objSelect.appendChild(o); });
             } else {
-                labelDoiTuong.innerText = "Khách Hàng Mua:";
-                let opt = document.createElement('option'); opt.value = "Khách mua lẻ"; opt.text = "Khách mua lẻ"; objSelect.appendChild(opt);
-                cachedCustomers.forEach(name => { let o = document.createElement('option'); o.value = name; o.text = name; objSelect.appendChild(o); });
+                labelAmount.innerText = "THỰC TẾ TRÊN KỆ ĐANG CÓ BAO NHIÊU CÁI?";
+                labelAmount.style.color = "#d10000";
+                document.getElementById('group-obj').style.display = "none"; // Ẩn luôn nhà cung cấp, ko làm rối
             }
         }
 
-        // ---------- LUỒNG QUÉT MÃ ----------
+        // ---------- QUÉT MÃ ----------
         function openScanner() {
-            formMode = "SCAN";
-            mainMenu.style.display = "none";
-            scannerSection.style.display = "block";
-            statusDiv.style.display = "block";
-            showStatus("Đang mở Camera...", "loading");
-
+            formMode = "SCAN"; mainMenu.style.display = "none"; scannerSection.style.display = "block";
+            statusDiv.style.display = "block"; showStatus("Đang mở Camera...", "loading");
             if(!html5QrCode) html5QrCode = new Html5Qrcode("reader");
 
             html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, onScanSuccess)
                 .then(() => { showStatus("Hãy đưa mã vạch vào ô vuông", "success"); })
-                .catch((err) => { showStatus("Lỗi: Máy bạn chưa cho phép dùng Camera.", "error"); });
+                .catch((err) => { showStatus("Lỗi Camera.", "error"); });
         }
 
         function onScanSuccess(decodedText) {
             if (isProcessing) return;
-            isProcessing = true;
-            currentScannedCode = decodedText;
+            isProcessing = true; currentScannedCode = decodedText;
             
             html5QrCode.stop().then(() => {
-                showStatus(`Đang kiểm tra mã...`, "loading");
-
+                showStatus(`Đang đọc mã...`, "loading");
                 fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify({ action: 'get_info', maSP: decodedText })
-                })
-                .then(res => res.json())
-                .then(data => {
+                }).then(res => res.json()).then(data => {
                     if(data.status === 'success') {
-                        scannerSection.style.display = "none";
-                        inputForm.style.display = "block";
+                        scannerSection.style.display = "none"; inputForm.style.display = "block";
                         
                         document.getElementById('group-search').style.display = "none";
-                        document.getElementById('group-prod-name').style.display = "block";
                         document.getElementById('display-maSP').style.display = "block";
-                        
                         document.getElementById('display-maSP').innerText = `Mã hàng: ${decodedText}`;
-                        document.getElementById('sp-qty').innerText = `Tồn kho đang có: ${data.currentQty}`;
+                        document.getElementById('sp-qty').innerText = `Tồn trên máy đang báo: ${data.currentQty}`;
                         
-                        let prodInput = document.getElementById('prod-name');
-                        prodInput.value = data.tenSP;
-                        prodInput.disabled = !data.isNew; 
+                        // Nếu hàng mới, hiện khu vực gõ Tên và Phân Loại
+                        if(data.isNew) {
+                            newItemSection.style.display = "block";
+                            document.getElementById('prod-name').value = "";
+                            document.getElementById('prod-name').disabled = false;
+                        } else {
+                            newItemSection.style.display = "block";
+                            document.getElementById('prod-name').value = data.tenSP;
+                            document.getElementById('prod-name').disabled = true;
+                            document.getElementById('prod-category').parentElement.style.display = "none"; // Ẩn phân loại
+                        }
                         
-                        document.getElementById('input-amount').value = 1;
+                        document.getElementById('input-amount').value = "";
                         document.getElementById('trans-date').value = getToday();
-                        transTypeSelect.value = "IN"; 
-                        toggleObjList(); 
-
-                        showStatus(data.isNew ? "Hàng mới! Hãy gõ tên Sản phẩm vào." : "Hãy điền số lượng cần Nhập/Xuất.", "success");
+                        transTypeSelect.value = "COUNT"; // Mặc định Kiểm kê cuối ngày cho các cô chú
+                        toggleFormLogic(); 
+                        showStatus(data.isNew ? "Hàng mới! Cô chú gõ tên Sản phẩm vào nha." : "Ghi sổ thôi cô chú ơi.", "success");
                     }
-                })
-                .catch(err => {
-                    showStatus("Lỗi mạng! Không kiểm tra được.", "error");
-                    setTimeout(() => { goBackToMenu(); }, 2000);
-                });
+                }).catch(err => { showStatus("Mạng yếu, thử lại nha.", "error"); setTimeout(goBackToMenu, 2000); });
             });
         }
 
-        // ---------- LUỒNG GHI SỔ THỦ CÔNG & CHẠM TỪ TỒN KHO ----------
+        // ---------- THỦ CÔNG & TỪ TỒN KHO ----------
         function openManual() {
-            formMode = "MANUAL";
-            currentScannedCode = ""; 
-            mainMenu.style.display = "none";
-            inputForm.style.display = "block";
-            statusDiv.style.display = "block";
-            showStatus("Nhấp vào thanh Tìm kiếm để chọn Sản phẩm", "success");
+            formMode = "MANUAL"; currentScannedCode = ""; mainMenu.style.display = "none";
+            inputForm.style.display = "block"; statusDiv.style.display = "block";
+            showStatus("Chạm vào ô tìm kiếm để lấy tên Sản phẩm", "success");
             
             document.getElementById('group-search').style.display = "block";
-            document.getElementById('group-prod-name').style.display = "none";
             document.getElementById('display-maSP').style.display = "none";
+            newItemSection.style.display = "none";
             
             manualProdInput.value = "";
-            document.getElementById('sp-qty').innerText = `Tồn kho đang có: --`;
-            document.getElementById('input-amount').value = 1;
+            document.getElementById('sp-qty').innerText = `Tồn trên máy đang báo: --`;
+            document.getElementById('input-amount').value = "";
             document.getElementById('trans-date').value = getToday();
-            transTypeSelect.value = "IN"; 
-            toggleObjList(); 
+            transTypeSelect.value = "COUNT"; 
+            toggleFormLogic(); 
         }
 
         function onManualSelect() {
             let val = manualProdInput.value;
             let found = cachedProducts.find(p => `${p.maSP} - ${p.tenSP}` === val);
             if(found) {
-                document.getElementById('sp-qty').innerText = `Tồn kho đang có: ${found.qty}`;
+                document.getElementById('sp-qty').innerText = `Tồn trên máy đang báo: ${found.qty}`;
+                newItemSection.style.display = "none";
             } else {
-                document.getElementById('sp-qty').innerText = `Tồn kho đang có: Mới`;
+                document.getElementById('sp-qty').innerText = `Tồn trên máy đang báo: MỚI TINH`;
+                newItemSection.style.display = "block";
+                document.getElementById('prod-name').value = val; // Mồi sẵn tên
+                document.getElementById('prod-name').disabled = false;
+                document.getElementById('prod-category').parentElement.style.display = "block";
             }
         }
 
-        // HÀM MỚI: Nhảy thẳng vào form nhập khi chạm vào danh sách Tồn Kho
         function jumpToManualFromInv(maSP, tenSP, qty) {
-            formMode = "MANUAL";
-            currentScannedCode = ""; 
-
-            inventorySection.style.display = "none";
-            inputForm.style.display = "block";
-            statusDiv.style.display = "none";
+            formMode = "MANUAL"; currentScannedCode = ""; 
+            inventorySection.style.display = "none"; inputForm.style.display = "block"; statusDiv.style.display = "none";
             
             document.getElementById('group-search').style.display = "block";
-            document.getElementById('group-prod-name').style.display = "none";
             document.getElementById('display-maSP').style.display = "none";
+            newItemSection.style.display = "none";
             
-            // Tự động điền sẵn mã và tên vào ô Tìm kiếm
             manualProdInput.value = `${maSP} - ${tenSP}`;
-            document.getElementById('sp-qty').innerText = `Tồn kho đang có: ${qty}`;
+            document.getElementById('sp-qty').innerText = `Tồn trên máy đang báo: ${qty}`;
             
-            document.getElementById('input-amount').value = 1;
+            document.getElementById('input-amount').value = "";
             document.getElementById('trans-date').value = getToday();
-            transTypeSelect.value = "IN"; 
-            toggleObjList(); 
+            transTypeSelect.value = "COUNT"; // Mặc định chốt tồn
+            toggleFormLogic(); 
         }
 
-        // ---------- XEM TỒN KHO & TÌM KIẾM NHANH ----------
+        // ---------- LƯU DỮ LIỆU ----------
+        function submitUpdate() {
+            let prodName = "", maSP = "", category = "BÁNH";
+
+            if (formMode === "SCAN") {
+                maSP = currentScannedCode;
+                prodName = document.getElementById('prod-name').value;
+                if (!document.getElementById('prod-name').disabled) { category = document.getElementById('prod-category').value; }
+            } else { 
+                let val = manualProdInput.value;
+                if (!val.trim()) { alert("Cô chú chưa chọn Sản phẩm!"); return; }
+                if (val.includes(" - ")) { maSP = val.split(" - ")[0]; prodName = val.split(" - ")[1]; } 
+                else { maSP = ""; prodName = document.getElementById('prod-name').value; category = document.getElementById('prod-category').value;}
+            }
+
+            if (!prodName.trim()) { alert("Cô chú điền thiếu Tên sản phẩm kìa!"); return; }
+
+            let amount = document.getElementById('input-amount').value;
+            let transType = transTypeSelect.value;
+            let objName = transType === "IN" ? objSelect.value : "Khách Lẻ";
+            let transDate = document.getElementById('trans-date').value;
+            let entryDate = getToday(); 
+
+            if (amount === "") { alert("Cô chú quên nhập Số lượng rồi!"); return; }
+
+            showStatus(`Đang lưu vào sổ sách...`, "loading");
+            inputForm.style.display = "none";
+
+            fetch(API_URL, {
+                method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ 
+                    action: 'update', maSP: maSP, prod_name: prodName, category: category,
+                    amount: amount, trans_type: transType, trans_date: transDate,
+                    entry_date: entryDate, obj_name: objName
+                })
+            }).then(res => res.json()).then(data => {
+                if(data.status === 'success') { showStatus(data.message, "success"); fetchDataInit(); } 
+                else { showStatus(`Lỗi rồi: ${data.message}`, "error"); }
+                setTimeout(goBackToMenu, 4000); 
+            }).catch(err => { showStatus("Lỗi kết nối máy chủ!", "error"); setTimeout(goBackToMenu, 4000); });
+        }
+
+        // ---------- TỒN KHO ----------
         function openInventory() {
-            mainMenu.style.display = "none";
-            inventorySection.style.display = "block";
-            statusDiv.style.display = "block";
-            document.getElementById('inv-search').value = ""; // Xóa bộ lọc cũ
+            mainMenu.style.display = "none"; inventorySection.style.display = "block";
+            statusDiv.style.display = "block"; document.getElementById('inv-search').value = ""; 
             showStatus("Đang tải danh sách...", "loading");
             
             let listDiv = document.getElementById('inventory-list');
             listDiv.innerHTML = ""; 
 
             fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify({ action: 'get_inventory' })
-            })
-            .then(res => res.json())
-            .then(data => {
+            }).then(res => res.json()).then(data => {
                 if(data.status === 'success') {
                     statusDiv.style.display = "none"; 
-                    if(data.inventory.length === 0) {
-                        listDiv.innerHTML = "<p style='text-align:center; font-size:20px; color:#666;'>Kho chưa có hàng nào</p>";
-                        return;
-                    }
+                    if(data.inventory.length === 0) { listDiv.innerHTML = "<p>Kho trống trơn</p>"; return; }
                     data.inventory.forEach(item => {
-                        let div = document.createElement('div'); 
-                        div.className = "inv-item";
-                        // Gắn sự kiện "Chạm để Nhập Xuất"
+                        let div = document.createElement('div'); div.className = "inv-item";
                         div.onclick = function() { jumpToManualFromInv(item.maSP, item.tenSP, item.ending); };
-                        
                         div.innerHTML = `<div><div class="inv-name">${item.tenSP}</div><div class="inv-code">Mã: ${item.maSP}</div></div><div class="inv-qty">${item.ending}</div>`;
                         listDiv.appendChild(div);
                     });
                 }
-            })
-            .catch(err => { showStatus("Lỗi mạng! Không xem được.", "error"); });
+            }).catch(err => { showStatus("Lỗi mạng!", "error"); });
         }
 
-        // HÀM MỚI: Lọc (Filter) danh sách tồn kho trực tiếp
         function filterInventory() {
             let filterText = document.getElementById('inv-search').value.toLowerCase();
             let items = document.getElementById('inventory-list').getElementsByClassName('inv-item');
-            
             for (let i = 0; i < items.length; i++) {
-                let textContent = items[i].innerText.toLowerCase();
-                if (textContent.includes(filterText)) {
-                    items[i].style.display = "flex";
-                } else {
-                    items[i].style.display = "none";
-                }
+                items[i].style.display = items[i].innerText.toLowerCase().includes(filterText) ? "flex" : "none";
             }
-        }
-
-        // ---------- LƯU DỮ LIỆU CHUNG ----------
-        function submitUpdate() {
-            let prodName = "";
-            let maSP = "";
-
-            if (formMode === "SCAN") {
-                prodName = document.getElementById('prod-name').value;
-                maSP = currentScannedCode;
-                if (!prodName.trim()) { alert("Chưa nhập Tên sản phẩm!"); return; }
-            } else { 
-                let val = manualProdInput.value;
-                if (!val.trim()) { alert("Chưa chọn Sản phẩm!"); return; }
-                
-                if (val.includes(" - ")) {
-                    maSP = val.split(" - ")[0];
-                    prodName = val.split(" - ")[1];
-                } else {
-                    maSP = ""; 
-                    prodName = val;
-                }
-            }
-
-            let amount = document.getElementById('input-amount').value;
-            let transType = transTypeSelect.value;
-            let objName = objSelect.value;
-            let transDate = document.getElementById('trans-date').value;
-            let entryDate = getToday(); 
-
-            if (!amount || amount <= 0) { alert("Số lượng phải lớn hơn 0!"); return; }
-
-            showStatus(`Đang lưu vào sổ sách...`, "loading");
-            inputForm.style.display = "none";
-
-            fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({ 
-                    action: 'update', maSP: maSP, prod_name: prodName,
-                    amount: amount, trans_type: transType, trans_date: transDate,
-                    entry_date: entryDate, obj_name: objName
-                })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if(data.status === 'success') {
-                    showStatus(data.message, "success");
-                    fetchDataInit(); 
-                } else {
-                    showStatus(`Lỗi: ${data.message}`, "error");
-                }
-                setTimeout(() => { goBackToMenu(); }, 3000); 
-            })
-            .catch(err => {
-                showStatus("Lỗi kết nối máy chủ!", "error");
-                setTimeout(() => { goBackToMenu(); }, 3000);
-            });
         }
     </script>
 </body>
