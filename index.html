@@ -693,7 +693,8 @@
                 container.style.display = "block";
                 let html = `<p style="margin-top:0; font-weight:bold; color:#0056b3; margin-bottom:12px; font-size:13px;">Mời cô chú chọn để máy ghép tên:</p>`;
                 fields.forEach(f => {
-                    html += `<div style="margin-bottom:10px;"><label class="kyc-label">- ${f.label}</label><select class="kyc-select kyc-field-dynamic" onchange="handleDropdownAddNew(this)">`;
+                    html += `<div style="margin-bottom:10px;"><label class="kyc-label">- ${f.label}</label><select class="kyc-select kyc-field-dynamic" data-label="${f.label}" onchange="handleDropdownAddNew(this)">`;
+
                     f.opts.forEach(opt => { html += `<option value="${opt}">${opt === "" ? "-- Bấm chọn --" : opt}</option>`; });
                     html += `<option value="ADD_NEW">+ Thêm mới...</option></select></div>`;
                 });
@@ -845,63 +846,84 @@
             transTypeSelect.value = (mode === "STOCK") ? "COUNT" : "IN"; toggleFormLogic();
         }
 
-        function submitUpdate() {
-            if (currentFormState !== "TRANS_INFO") return;
-            let amount = Number(document.getElementById('input-amount').value);
-            let transType = transTypeSelect.value;
+function submitUpdate() {
+    if (currentFormState !== "TRANS_INFO") return;
+    let amount = Number(document.getElementById('input-amount').value);
+    let transType = transTypeSelect.value;
 
-            if (transType === "COUNT" && amount > currentExpectedQty) {
-                showToast(`⚠️ Tồn dự kiến: ${currentExpectedQty} | Đếm thực tế: ${amount} — Có hàng nhập chưa ghi sổ!`, "warning");
-                return;
-            }
-            if (document.getElementById('input-amount').value === "" || isNaN(amount)) {
-                showToast("⚠️ Chưa nhập số lượng!", "warning"); return;
-            }
+    if (transType === "COUNT" && amount > currentExpectedQty) {
+        showToast(`⚠️ Tồn dự kiến: ${currentExpectedQty} | Thực tế: ${amount} — Có hàng nhập chưa ghi sổ!`, "warning");
+        return;
+    }
+    if (document.getElementById('input-amount').value === "" || isNaN(amount)) {
+        showToast("⚠️ Chưa nhập số lượng!", "warning"); return;
+    }
 
-            let prodName = "", maSP = "", category = "KHÁC";
-            if (formMode === "SCAN") {
-                maSP = currentScannedCode; prodName = document.getElementById('prod-name').value;
-                if (!document.getElementById('prod-name').disabled) category = document.getElementById('prod-category').value;
-            } else {
-                if (document.getElementById('group-search').style.display === "none") {
-                    maSP = ""; prodName = document.getElementById('prod-name').value; category = document.getElementById('prod-category').value;
-                } else {
-                    let val = manualProdInput.value;
-                    let found = cachedProducts.find(p => p.tenSP === val);
-                    if (found) { 
-                        maSP = found.maSP; 
-                        prodName = found.tenSP; 
-                    } else { 
-                        maSP = ""; 
-                        prodName = document.getElementById('prod-name').value; 
-                        category = document.getElementById('prod-category').value; 
-                    }
+    let prodName = "", maSP = "", category = "KHÁC";
+    let kycData = []; // Mảng chứa các thuộc tính lẻ để gửi lên server
+
+    if (formMode === "SCAN") {
+        maSP = currentScannedCode;
+        prodName = document.getElementById('prod-name').value;
+        if (!document.getElementById('prod-name').disabled) {
+            category = document.getElementById('prod-category').value;
+            // Thu thập dữ liệu từ các ô select động
+            document.querySelectorAll('.kyc-field-dynamic').forEach(sel => {
+                if (sel.value && sel.value !== "ADD_NEW") {
+                    kycData.push({ label: sel.getAttribute('data-label'), value: sel.value.trim() });
                 }
-            }
-
-            showToast("⏳ Đang lưu dữ liệu...", "info");
-            inputForm.style.display = "none"; btnHeadSave.style.display = "none";
-
-            fetch(API_URL, {
-                method: 'POST',
-                body: JSON.stringify({
-                    action: 'update', maSP: maSP, prod_name: prodName, category: category,
-                    amount: amount, trans_type: transType,
-                    trans_date: dateInput.value, obj_name: transType === "IN" ? objSelect.value : ""
-                })
-            }).then(res => res.json()).then(data => {
-                if (data.status === 'success') {
-                    showToast("✅ " + data.message, "success");
-                    fetchDataInit();
-                } else {
-                    showToast("❌ Lỗi: " + data.message, "error");
-                    setTimeout(goBack, 3000);
-                }
-            }).catch(() => {
-                showToast("📶 Lỗi kết nối khi lưu!", "error");
-                setTimeout(goBack, 3000);
             });
         }
+    } else {
+        if (document.getElementById('group-search').style.display === "none") {
+            maSP = "";
+            prodName = document.getElementById('prod-name').value;
+            category = document.getElementById('prod-category').value;
+            document.querySelectorAll('.kyc-field-dynamic').forEach(sel => {
+                if (sel.value && sel.value !== "ADD_NEW") {
+                    kycData.push({ label: sel.getAttribute('data-label'), value: sel.value.trim() });
+                }
+            });
+        } else {
+            let val = manualProdInput.value;
+            let found = cachedProducts.find(p => p.tenSP === val);
+            if (found) { maSP = found.maSP; prodName = found.tenSP; category = found.category; }
+            else { 
+                maSP = ""; prodName = document.getElementById('prod-name').value; 
+                category = document.getElementById('prod-category').value; 
+            }
+        }
+    }
+
+    showToast("⏳ Đang lưu dữ liệu...", "info");
+    inputForm.style.display = "none"; btnHeadSave.style.display = "none";
+
+    fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+            action: 'update', 
+            maSP: maSP, 
+            prod_name: prodName, 
+            category: category,
+            amount: amount, 
+            trans_type: transType,
+            trans_date: dateInput.value, 
+            obj_name: transType === "IN" ? objSelect.value : "",
+            kyc_data: kycData // Gửi kèm dữ liệu bóc tách
+        })
+    }).then(res => res.json()).then(data => {
+        if (data.status === 'success') {
+            showToast("✅ " + data.message, "success");
+            fetchDataInit();
+        } else {
+            showToast("❌ Lỗi: " + data.message, "error");
+            setTimeout(goBack, 3000);
+        }
+    }).catch(() => {
+        showToast("📶 Lỗi kết nối khi lưu!", "error");
+        setTimeout(goBack, 3000);
+    });
+}
 
         function openInventory(mode) {
             currentListMode = mode; currentScreen = "LIST"; previousScreen = "MENU";
