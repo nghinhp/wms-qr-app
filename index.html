@@ -3,103 +3,131 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WMS Master System</title>
+    <title>WMS Smart System</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
-        body { font-family: -apple-system, sans-serif; padding: 15px; text-align: center; background: #f8fafc; margin: 0; }
+        body { font-family: -apple-system, sans-serif; padding: 15px; text-align: center; background: #f1f5f9; margin: 0; }
         .container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); max-width: 500px; margin: 0 auto; text-align: left; }
-        h2 { text-align: center; color: #0f172a; margin-top: 0;}
+        h2 { text-align: center; color: #0f172a; margin-top: 0; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;}
         
+        /* Menu Chính */
+        #main-menu { display: block; text-align: center; padding: 20px 0; }
+        .menu-btn { display: block; width: 100%; padding: 20px; margin-bottom: 15px; font-size: 18px; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; color: white; transition: 0.2s; }
+        .btn-scan { background: #2563eb; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3); }
+        .btn-view { background: #059669; box-shadow: 0 4px 14px rgba(5, 150, 105, 0.3); }
+        .btn-back { background: #64748b; color: white; padding: 10px; width: 100%; border: none; border-radius: 8px; margin-bottom: 15px; font-weight: bold; cursor: pointer;}
+
+        /* Scanner & Form */
+        #scanner-section, #input-form, #inventory-section { display: none; }
         #reader { width: 100%; border-radius: 8px; overflow: hidden; margin-bottom: 15px; }
-        #input-form { display: none; background: #eff6ff; padding: 15px; border-radius: 8px; border: 1px solid #bfdbfe; }
         
-        .sp-info { font-size: 14px; color: #64748b; margin-bottom: 5px; text-align: center; }
-        .qty-info { font-size: 16px; font-weight: bold; color: #1e3a8a; margin-bottom: 15px; text-align: center; }
+        .sp-info { font-size: 15px; color: #475569; margin-bottom: 5px; text-align: center; }
+        .qty-info { font-size: 18px; font-weight: bold; color: #1e3a8a; margin-bottom: 20px; text-align: center; }
         
-        label { font-weight: 600; font-size: 13px; color: #334155; display: block; margin-bottom: 5px; }
-        input, select { width: 100%; padding: 10px; font-size: 15px; border: 1px solid #cbd5e1; border-radius: 6px; margin-bottom: 12px; box-sizing: border-box; }
+        /* Layout Nhập liệu (Xếp dọc 100%) */
+        .form-group { margin-bottom: 15px; }
+        label { font-weight: 600; font-size: 14px; color: #334155; display: block; margin-bottom: 6px; }
+        input, select { width: 100%; padding: 12px; font-size: 16px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; background-color: #f8fafc;}
+        input:focus, select:focus { outline: none; border-color: #2563eb; background-color: white;}
         input:disabled { background-color: #e2e8f0; color: #64748b; }
         
-        .flex-row { display: flex; gap: 10px; }
-        .flex-row > div { flex: 1; }
-        
-        .btn-group { display: flex; gap: 10px; margin-top: 10px; }
-        button { padding: 12px; font-size: 15px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; flex: 1; }
+        .btn-group { display: flex; gap: 10px; margin-top: 20px; }
+        .btn-group button { padding: 15px; font-size: 16px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; flex: 1; }
         .btn-submit { background: #2563eb; color: white; }
         .btn-cancel { background: #e2e8f0; color: #475569; }
 
-        #status { padding: 15px; border-radius: 8px; font-weight: bold; font-size: 14px; margin-top: 15px; text-align: center;}
-        .success { background-color: #dcfce7; color: #166534; }
-        .error { background-color: #fee2e2; color: #991b1b; }
-        .loading { background-color: #f1f5f9; color: #334155; }
+        #status { padding: 15px; border-radius: 8px; font-weight: bold; font-size: 14px; margin-top: 15px; text-align: center; display: none;}
+        .success { background-color: #dcfce7; color: #166534; display: block !important;}
+        .error { background-color: #fee2e2; color: #991b1b; display: block !important;}
+        .loading { background-color: #f1f5f9; color: #334155; display: block !important;}
+
+        /* Bảng Tồn Kho */
+        .inv-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e2e8f0; }
+        .inv-name { font-weight: bold; color: #0f172a; font-size: 15px; margin-bottom: 4px;}
+        .inv-code { font-size: 12px; color: #64748b; }
+        .inv-qty { font-weight: bold; color: #059669; font-size: 16px; display: flex; align-items: center;}
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h2>Hệ Thống Kho</h2>
+        <h2>📦 WMS Master</h2>
         
+        <div id="main-menu">
+            <button class="menu-btn btn-scan" onclick="openScanner()">📷 Quét Mã Nhập/Xuất</button>
+            <button class="menu-btn btn-view" onclick="openInventory()">📊 Xem Tồn Kho</button>
+        </div>
+
         <div id="scanner-section">
+            <button class="btn-back" onclick="goBackToMenu()">⬅ Quay lại Menu</button>
             <div id="reader"></div>
+        </div>
+
+        <div id="inventory-section">
+            <button class="btn-back" onclick="goBackToMenu()">⬅ Quay lại Menu</button>
+            <div id="inventory-list"></div>
         </div>
 
         <div id="input-form">
             <div class="sp-info" id="display-maSP">Mã: </div>
+            <div class="qty-info" id="sp-qty">Tồn Ending: 0</div>
             
-            <label>Tên Sản Phẩm</label>
-            <input type="text" id="prod-name" placeholder="Gõ tên SP (nếu mã mới)...">
+            <div class="form-group">
+                <label>Tên Sản Phẩm</label>
+                <input type="text" id="prod-name" placeholder="Gõ tên SP (nếu mã mới)...">
+            </div>
             
-            <div class="qty-info" id="sp-qty">Tồn hiện tại: 0</div>
-            
-            <div class="flex-row">
-                <div>
-                    <label>Loại GD (trans_type)</label>
-                    <select id="trans-type" onchange="toggleObjList()">
-                        <option value="IN" selected>IN (Nhập kho)</option>
-                        <option value="OUT">OUT (Xuất kho)</option>
-                    </select>
-                </div>
-                <div>
-                    <label>Số lượng (base_qty)</label>
-                    <input type="number" id="input-amount" value="1" min="1">
-                </div>
+            <div class="form-group">
+                <label>Loại Giao Dịch</label>
+                <select id="trans-type" onchange="toggleObjList()">
+                    <option value="IN" selected>IN (Nhập kho)</option>
+                    <option value="OUT">OUT (Xuất kho)</option>
+                </select>
             </div>
 
-            <label>Đối Tượng (obj_name)</label>
-            <select id="obj-select">
-                </select>
+            <div class="form-group">
+                <label>Số lượng (base_qty)</label>
+                <input type="number" id="input-amount" value="1" min="1">
+            </div>
 
-            <div class="flex-row">
-                <div>
-                    <label>Ngày GD (trans_date)</label>
-                    <input type="date" id="trans-date">
-                </div>
-                <div>
-                    <label>Ngày Ghi (entry_date)</label>
-                    <input type="date" id="entry-date">
-                </div>
+            <div class="form-group">
+                <label>Đối Tượng Giao Dịch</label>
+                <select id="obj-select"></select>
+            </div>
+
+            <div class="form-group">
+                <label>Ngày Giao Dịch (trans_date)</label>
+                <input type="date" id="trans-date">
+            </div>
+
+            <div class="form-group">
+                <label>Ngày Ghi Sổ (entry_date)</label>
+                <input type="date" id="entry-date">
             </div>
 
             <div class="btn-group">
-                <button class="btn-cancel" onclick="cancelInput()">Hủy bỏ</button>
-                <button class="btn-submit" onclick="submitUpdate()">Xác nhận</button>
+                <button class="btn-cancel" onclick="goBackToMenu()">Hủy bỏ</button>
+                <button class="btn-submit" onclick="submitUpdate()">Lưu Xác Nhận</button>
             </div>
         </div>
 
-        <div id="status" class="loading">Đang khởi động camera...</div>
+        <div id="status"></div>
     </div>
 
     <script>
-        // THAY LINK API CỦA BẠN VÀO ĐÂY (Giữ nguyên ngoặc kép)
+        // THAY LINK API VÀO ĐÂY
         const API_URL = "https://script.google.com/macros/s/AKfycbxZi7yFbogjlAfeRKAUkVXKnkYYli0MmByKCpVSNwuK-9_CWLHBijH8fF5trnmIX1yW0A/exec"; 
         
-        const statusDiv = document.getElementById('status');
-        const inputForm = document.getElementById('input-form');
+        const mainMenu = document.getElementById('main-menu');
         const scannerSection = document.getElementById('scanner-section');
+        const inventorySection = document.getElementById('inventory-section');
+        const inputForm = document.getElementById('input-form');
+        const statusDiv = document.getElementById('status');
+        
         const transTypeSelect = document.getElementById('trans-type');
         const objSelect = document.getElementById('obj-select');
         
-        const html5QrCode = new Html5Qrcode("reader");
+        let html5QrCode;
         let isProcessing = false;
         let currentScannedCode = "";
         
@@ -108,14 +136,42 @@
 
         function getToday() { return new Date().toISOString().split('T')[0]; }
 
-        html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, onScanSuccess)
-            .then(() => { statusDiv.innerText = "Sẵn sàng: Đưa mã vào khung hình"; })
-            .catch((err) => { statusDiv.innerText = "Lỗi Camera."; statusDiv.className = "error"; });
+        function showStatus(msg, type) {
+            statusDiv.innerText = msg;
+            statusDiv.className = type;
+        }
+
+        // --- ĐIỀU HƯỚNG MÀN HÌNH ---
+        function goBackToMenu() {
+            // Tắt camera nếu đang chạy để đỡ tốn pin
+            if (html5QrCode && html5QrCode.isScanning) {
+                html5QrCode.stop().catch(err => console.log("Lỗi tắt camera"));
+            }
+            scannerSection.style.display = "none";
+            inputForm.style.display = "none";
+            inventorySection.style.display = "none";
+            statusDiv.style.display = "none";
+            mainMenu.style.display = "block";
+            isProcessing = false;
+        }
+
+        // --- TÍNH NĂNG 1: QUÉT MÃ ---
+        function openScanner() {
+            mainMenu.style.display = "none";
+            scannerSection.style.display = "block";
+            statusDiv.style.display = "block";
+            showStatus("Đang khởi động camera...", "loading");
+
+            if(!html5QrCode) html5QrCode = new Html5Qrcode("reader");
+
+            html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, onScanSuccess)
+                .then(() => { showStatus("Sẵn sàng: Đưa mã vào khung hình", "success"); })
+                .catch((err) => { showStatus("Lỗi: Không thể truy cập Camera.", "error"); });
+        }
 
         function toggleObjList() {
             let type = transTypeSelect.value;
             objSelect.innerHTML = ""; 
-            
             let targetList = type === "IN" ? cachedVendors : cachedCustomers;
             
             if (targetList.length === 0) {
@@ -126,9 +182,7 @@
             } else {
                 targetList.forEach(name => {
                     let opt = document.createElement('option');
-                    opt.value = name;
-                    opt.text = name;
-                    objSelect.appendChild(opt);
+                    opt.value = name; opt.text = name; objSelect.appendChild(opt);
                 });
             }
         }
@@ -138,45 +192,44 @@
             isProcessing = true;
             currentScannedCode = decodedText;
             
-            statusDiv.innerText = `Đang tải data từ 6 Sheet...`;
-            statusDiv.className = "loading";
+            // Tạm dừng camera khi quét được mã
+            html5QrCode.stop().then(() => {
+                showStatus(`Đang tải dữ liệu: ${decodedText}...`, "loading");
 
-            fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({ action: 'get_info', maSP: decodedText })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if(data.status === 'success') {
-                    cachedCustomers = data.customers;
-                    cachedVendors = data.vendors;
-                    
-                    scannerSection.style.display = "none";
-                    inputForm.style.display = "block";
-                    
-                    document.getElementById('display-maSP').innerText = `Mã SP: ${decodedText}`;
-                    document.getElementById('sp-qty').innerText = `Tồn Ending: ${data.currentQty}`;
-                    
-                    let prodInput = document.getElementById('prod-name');
-                    prodInput.value = data.tenSP;
-                    prodInput.disabled = !data.isNew; 
-                    
-                    document.getElementById('input-amount').value = 1;
-                    document.getElementById('trans-date').value = getToday();
-                    document.getElementById('entry-date').value = getToday();
-                    transTypeSelect.value = "IN"; 
-                    
-                    toggleObjList(); 
+                fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: 'get_info', maSP: decodedText })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if(data.status === 'success') {
+                        cachedCustomers = data.customers;
+                        cachedVendors = data.vendors;
+                        
+                        scannerSection.style.display = "none";
+                        inputForm.style.display = "block";
+                        
+                        document.getElementById('display-maSP').innerText = `Mã: ${decodedText}`;
+                        document.getElementById('sp-qty').innerText = `Tồn Ending: ${data.currentQty}`;
+                        
+                        let prodInput = document.getElementById('prod-name');
+                        prodInput.value = data.tenSP;
+                        prodInput.disabled = !data.isNew; 
+                        
+                        document.getElementById('input-amount').value = 1;
+                        document.getElementById('trans-date').value = getToday();
+                        document.getElementById('entry-date').value = getToday();
+                        transTypeSelect.value = "IN"; 
+                        toggleObjList(); 
 
-                    statusDiv.innerText = data.isNew ? "Mã mới! Vui lòng nhập Tên sản phẩm." : "Nhập số lượng & Đối tượng.";
-                    statusDiv.className = "success";
-                }
-            })
-            .catch(err => {
-                statusDiv.innerText = "Lỗi mạng!";
-                statusDiv.className = "error";
-                setTimeout(() => { resetScanner(); }, 2500);
+                        showStatus(data.isNew ? "Mã mới! Nhập Tên sản phẩm." : "Nhập chi tiết giao dịch.", "success");
+                    }
+                })
+                .catch(err => {
+                    showStatus("Lỗi đường truyền mạng!", "error");
+                    setTimeout(() => { goBackToMenu(); }, 2000);
+                });
             });
         }
 
@@ -191,50 +244,76 @@
             if (!prodName.trim()) { alert("Vui lòng nhập Tên sản phẩm"); return; }
             if (!amount || amount <= 0) { alert("Số lượng không hợp lệ"); return; }
 
-            statusDiv.innerText = `Đang đồng bộ vào Database...`;
-            statusDiv.className = "loading";
+            showStatus(`Đang ghi dữ liệu vào Sheets...`, "loading");
             inputForm.style.display = "none";
 
             fetch(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify({ 
-                    action: 'update', 
-                    maSP: currentScannedCode, 
-                    prod_name: prodName,
-                    amount: amount,
-                    trans_type: transType,
-                    trans_date: transDate,
-                    entry_date: entryDate,
-                    obj_name: objName
+                    action: 'update', maSP: currentScannedCode, prod_name: prodName,
+                    amount: amount, trans_type: transType, trans_date: transDate,
+                    entry_date: entryDate, obj_name: objName
                 })
             })
             .then(res => res.json())
             .then(data => {
                 if(data.status === 'success') {
-                    statusDiv.innerText = data.message;
-                    statusDiv.className = "success";
+                    showStatus(data.message, "success");
                 } else {
-                    statusDiv.innerText = `Lỗi: ${data.message}`;
-                    statusDiv.className = "error";
+                    showStatus(`Lỗi: ${data.message}`, "error");
                 }
-                setTimeout(() => { resetScanner(); }, 2500);
+                setTimeout(() => { goBackToMenu(); }, 2500);
             })
             .catch(err => {
-                statusDiv.innerText = "Lỗi kết nối máy chủ!";
-                statusDiv.className = "error";
-                setTimeout(() => { resetScanner(); }, 2500);
+                showStatus("Lỗi kết nối máy chủ!", "error");
+                setTimeout(() => { goBackToMenu(); }, 2500);
             });
         }
 
-        function cancelInput() { resetScanner(); }
+        // --- TÍNH NĂNG 2: XEM TỒN KHO ---
+        function openInventory() {
+            mainMenu.style.display = "none";
+            inventorySection.style.display = "block";
+            statusDiv.style.display = "block";
+            showStatus("Đang đồng bộ dữ liệu tồn kho...", "loading");
+            
+            let listDiv = document.getElementById('inventory-list');
+            listDiv.innerHTML = ""; // Xóa dữ liệu cũ
 
-        function resetScanner() {
-            inputForm.style.display = "none";
-            scannerSection.style.display = "block";
-            statusDiv.innerText = "Sẵn sàng quét mã tiếp theo...";
-            statusDiv.className = "loading";
-            isProcessing = false;
+            fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ action: 'get_inventory' })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.status === 'success') {
+                    statusDiv.style.display = "none"; // Load xong thì ẩn thông báo
+                    if(data.inventory.length === 0) {
+                        listDiv.innerHTML = "<p style='text-align:center; color:#64748b;'>Kho đang trống</p>";
+                        return;
+                    }
+                    
+                    data.inventory.forEach(item => {
+                        let div = document.createElement('div');
+                        div.className = "inv-item";
+                        div.innerHTML = `
+                            <div>
+                                <div class="inv-name">${item.tenSP}</div>
+                                <div class="inv-code">${item.maSP}</div>
+                            </div>
+                            <div class="inv-qty">${item.ending}</div>
+                        `;
+                        listDiv.appendChild(div);
+                    });
+                } else {
+                    showStatus("Lỗi tải tồn kho!", "error");
+                }
+            })
+            .catch(err => {
+                showStatus("Lỗi mạng khi tải tồn kho!", "error");
+            });
         }
     </script>
 </body>
