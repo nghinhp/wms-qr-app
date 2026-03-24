@@ -11,22 +11,23 @@
         .container { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto; }
         h2 { text-align: center; color: #003366; font-size: 26px; margin-top: 0; border-bottom: 2px solid #ddd; padding-bottom: 15px; }
         
-        /* Nút menu chính khổng lồ */
+        /* Menu chính */
         #main-menu { text-align: center; padding: 10px 0; }
         .menu-btn { display: block; width: 100%; padding: 25px; margin-bottom: 20px; font-size: 22px; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; color: white; }
         .btn-scan { background-color: #0056b3; }
+        .btn-manual { background-color: #d97706; } /* Nút màu Cam cho thủ công */
         .btn-view { background-color: #008000; }
         .btn-back { background-color: #555; color: white; padding: 18px; width: 100%; border: none; border-radius: 10px; margin-bottom: 20px; font-size: 20px; font-weight: bold; cursor: pointer;}
 
-        /* Khung Camera */
-        #scanner-section, #input-form, #inventory-section { display: none; }
+        /* Khung Section */
+        #scanner-section, #input-form, #inventory-section, #manual-section { display: none; }
         #reader { width: 100%; border-radius: 10px; border: 3px solid #0056b3; overflow: hidden; margin-bottom: 20px; }
         
-        /* Hiển thị thông tin sản phẩm to rõ */
+        /* Hiển thị thông tin to rõ */
         .sp-info { font-size: 20px; color: #333; margin-bottom: 10px; text-align: center; }
         .qty-info { font-size: 26px; font-weight: bold; color: #d10000; margin-bottom: 25px; text-align: center; background: #ffe6e6; padding: 10px; border-radius: 10px;}
         
-        /* Ô nhập liệu to, dễ bấm */
+        /* Ô nhập liệu */
         .form-group { margin-bottom: 25px; text-align: left;}
         label { font-weight: bold; font-size: 18px; color: #111; display: block; margin-bottom: 10px; }
         input, select { width: 100%; padding: 18px; font-size: 20px; border: 2px solid #ccc; border-radius: 10px; box-sizing: border-box; background-color: #fff;}
@@ -45,8 +46,7 @@
         .error { background-color: #ffcccc; color: #cc0000; display: block !important;}
         .loading { background-color: #e6f2ff; color: #003366; display: block !important;}
 
-        /* Bảng Tồn Kho */
-        .inv-item { display: flex; justify-content: space-between; align-items: center; padding: 18px 0; border-bottom: 2px solid #ddd; }
+        .inv-item { display: flex; justify-content: space-between; align-items: center; padding: 18px 0; border-bottom: 2px solid #ddd; text-align: left; }
         .inv-name { font-weight: bold; color: #111; font-size: 22px; margin-bottom: 5px;}
         .inv-code { font-size: 16px; color: #666; }
         .inv-qty { font-weight: bold; color: #008000; font-size: 26px; }
@@ -59,6 +59,7 @@
         
         <div id="main-menu">
             <button class="menu-btn btn-scan" onclick="openScanner()">📷 QUÉT MÃ VẠCH</button>
+            <button class="menu-btn btn-manual" onclick="openManual()">✍️ GHI SỔ THỦ CÔNG</button>
             <button class="menu-btn btn-view" onclick="openInventory()">📊 XEM TỒN KHO</button>
         </div>
 
@@ -73,12 +74,18 @@
         </div>
 
         <div id="input-form">
-            <div class="sp-info" id="display-maSP">Mã hàng: </div>
+            <div class="sp-info" id="display-maSP" style="display:none;">Mã hàng: </div>
             <div class="qty-info" id="sp-qty">Tồn kho đang có: 0</div>
             
-            <div class="form-group">
+            <div class="form-group" id="group-search">
+                <label>Tìm Sản Phẩm (Bấm để chọn):</label>
+                <input type="text" id="manual-prod" list="prod-datalist" placeholder="Nhấp vào đây..." onchange="onManualSelect()">
+                <datalist id="prod-datalist"></datalist>
+            </div>
+
+            <div class="form-group" id="group-prod-name" style="display:none;">
                 <label>Tên Sản Phẩm:</label>
-                <input type="text" id="prod-name" placeholder="Nhập tên nếu là hàng mới...">
+                <input type="text" id="prod-name">
             </div>
             
             <div class="form-group">
@@ -122,20 +129,28 @@
         const inventorySection = document.getElementById('inventory-section');
         const inputForm = document.getElementById('input-form');
         const statusDiv = document.getElementById('status');
+        
         const transTypeSelect = document.getElementById('trans-type');
         const objSelect = document.getElementById('obj-select');
         const labelDoiTuong = document.getElementById('label-doi-tuong');
+        const manualProdInput = document.getElementById('manual-prod');
         
         let html5QrCode;
         let isProcessing = false;
-        let currentScannedCode = "";
+        let currentScannedCode = ""; // Rỗng nếu nhập thủ công
+        let formMode = "SCAN"; // "SCAN" hoặc "MANUAL"
         
         let cachedCustomers = [];
         let cachedVendors = [];
+        let cachedProducts = [];
 
-        // HÀM TẢI NGẦM DỮ LIỆU KHI VỪA MỞ APP
+        // HÀM KHỞI ĐỘNG: Âm thầm nạp dữ liệu từ Google Sheets
         window.onload = function() {
             showStatus("Đang nạp dữ liệu hệ thống...", "loading");
+            fetchDataInit();
+        };
+
+        function fetchDataInit() {
             fetch(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -146,13 +161,24 @@
                 if(data.status === 'success') {
                     cachedCustomers = data.customers;
                     cachedVendors = data.vendors;
-                    statusDiv.style.display = "none"; // Ẩn thông báo đi
+                    cachedProducts = data.products;
+                    
+                    // Nạp vào danh sách gợi ý tìm kiếm
+                    let dl = document.getElementById('prod-datalist');
+                    dl.innerHTML = "";
+                    cachedProducts.forEach(p => {
+                        let opt = document.createElement('option');
+                        opt.value = `${p.maSP} - ${p.tenSP}`;
+                        dl.appendChild(opt);
+                    });
+                    
+                    statusDiv.style.display = "none";
                 }
             })
             .catch(err => {
-                showStatus("Mạng yếu, chưa tải được danh sách khách hàng.", "error");
+                showStatus("Mạng yếu, chưa tải được danh sách.", "error");
             });
-        };
+        }
 
         function getToday() { return new Date().toISOString().split('T')[0]; }
 
@@ -171,7 +197,25 @@
             isProcessing = false;
         }
 
+        // TỰ ĐỘNG HIỂN THỊ ĐÚNG ĐỐI TƯỢNG (NHÀ CC / KHÁCH)
+        function toggleObjList() {
+            let type = transTypeSelect.value;
+            objSelect.innerHTML = ""; 
+            
+            if(type === "IN") {
+                labelDoiTuong.innerText = "Nhà Cung Cấp:";
+                let opt = document.createElement('option'); opt.value = "Nhà cung cấp lẻ"; opt.text = "Nhà cung cấp lẻ"; objSelect.appendChild(opt);
+                cachedVendors.forEach(name => { let o = document.createElement('option'); o.value = name; o.text = name; objSelect.appendChild(o); });
+            } else {
+                labelDoiTuong.innerText = "Khách Hàng Mua:";
+                let opt = document.createElement('option'); opt.value = "Khách mua lẻ"; opt.text = "Khách mua lẻ"; objSelect.appendChild(opt);
+                cachedCustomers.forEach(name => { let o = document.createElement('option'); o.value = name; o.text = name; objSelect.appendChild(o); });
+            }
+        }
+
+        // ---------- LUỒNG 1: QUÉT MÃ VẠCH ----------
         function openScanner() {
+            formMode = "SCAN";
             mainMenu.style.display = "none";
             scannerSection.style.display = "block";
             statusDiv.style.display = "block";
@@ -180,31 +224,8 @@
             if(!html5QrCode) html5QrCode = new Html5Qrcode("reader");
 
             html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, onScanSuccess)
-                .then(() => { showStatus("Hãy đưa mã vạch vào ô vuông phía trên", "success"); })
+                .then(() => { showStatus("Hãy đưa mã vạch vào ô vuông", "success"); })
                 .catch((err) => { showStatus("Lỗi: Máy bạn chưa cho phép dùng Camera.", "error"); });
-        }
-
-        function toggleObjList() {
-            let type = transTypeSelect.value;
-            objSelect.innerHTML = ""; 
-            
-            if(type === "IN") {
-                labelDoiTuong.innerText = "Nhà Cung Cấp:";
-                let opt = document.createElement('option');
-                opt.value = "Nhà cung cấp lẻ"; opt.text = "Nhà cung cấp lẻ";
-                objSelect.appendChild(opt);
-                cachedVendors.forEach(name => {
-                    let o = document.createElement('option'); o.value = name; o.text = name; objSelect.appendChild(o);
-                });
-            } else {
-                labelDoiTuong.innerText = "Khách Hàng Mua:";
-                let opt = document.createElement('option');
-                opt.value = "Khách mua lẻ"; opt.text = "Khách mua lẻ";
-                objSelect.appendChild(opt);
-                cachedCustomers.forEach(name => {
-                    let o = document.createElement('option'); o.value = name; o.text = name; objSelect.appendChild(o);
-                });
-            }
         }
 
         function onScanSuccess(decodedText) {
@@ -213,7 +234,7 @@
             currentScannedCode = decodedText;
             
             html5QrCode.stop().then(() => {
-                showStatus(`Đang kiểm tra mã: ${decodedText}...`, "loading");
+                showStatus(`Đang kiểm tra mã...`, "loading");
 
                 fetch(API_URL, {
                     method: 'POST',
@@ -225,6 +246,11 @@
                     if(data.status === 'success') {
                         scannerSection.style.display = "none";
                         inputForm.style.display = "block";
+                        
+                        // Cấu hình giao diện Quét
+                        document.getElementById('group-search').style.display = "none";
+                        document.getElementById('group-prod-name').style.display = "block";
+                        document.getElementById('display-maSP').style.display = "block";
                         
                         document.getElementById('display-maSP').innerText = `Mã hàng: ${decodedText}`;
                         document.getElementById('sp-qty').innerText = `Tồn kho đang có: ${data.currentQty}`;
@@ -248,15 +274,68 @@
             });
         }
 
+        // ---------- LUỒNG 2: GHI SỔ THỦ CÔNG ----------
+        function openManual() {
+            formMode = "MANUAL";
+            currentScannedCode = ""; // Không có mã quét
+            mainMenu.style.display = "none";
+            inputForm.style.display = "block";
+            statusDiv.style.display = "block";
+            showStatus("Nhấp vào thanh Tìm kiếm để chọn Sản phẩm", "success");
+            
+            // Cấu hình giao diện Thủ công
+            document.getElementById('group-search').style.display = "block";
+            document.getElementById('group-prod-name').style.display = "none";
+            document.getElementById('display-maSP').style.display = "none";
+            
+            manualProdInput.value = "";
+            document.getElementById('sp-qty').innerText = `Tồn kho đang có: --`;
+            document.getElementById('input-amount').value = 1;
+            document.getElementById('trans-date').value = getToday();
+            transTypeSelect.value = "IN"; 
+            toggleObjList(); 
+        }
+
+        // Khi người dùng chọn 1 sản phẩm từ thanh gợi ý
+        function onManualSelect() {
+            let val = manualProdInput.value;
+            let found = cachedProducts.find(p => `${p.maSP} - ${p.tenSP}` === val);
+            if(found) {
+                document.getElementById('sp-qty').innerText = `Tồn kho đang có: ${found.qty}`;
+            } else {
+                document.getElementById('sp-qty').innerText = `Tồn kho đang có: Mới`;
+            }
+        }
+
+        // ---------- LƯU DỮ LIỆU CHUNG ----------
         function submitUpdate() {
-            let prodName = document.getElementById('prod-name').value;
+            let prodName = "";
+            let maSP = "";
+
+            if (formMode === "SCAN") {
+                prodName = document.getElementById('prod-name').value;
+                maSP = currentScannedCode;
+                if (!prodName.trim()) { alert("Chưa nhập Tên sản phẩm!"); return; }
+            } else { // MANUAL
+                let val = manualProdInput.value;
+                if (!val.trim()) { alert("Chưa chọn Sản phẩm!"); return; }
+                
+                // Tách mã và tên từ thanh tìm kiếm (Ví dụ: "SP001 - Bánh Tráng")
+                if (val.includes(" - ")) {
+                    maSP = val.split(" - ")[0];
+                    prodName = val.split(" - ")[1];
+                } else {
+                    maSP = ""; // Hệ thống sẽ tự tạo mã mới cho sản phẩm này
+                    prodName = val;
+                }
+            }
+
             let amount = document.getElementById('input-amount').value;
             let transType = transTypeSelect.value;
             let objName = objSelect.value;
             let transDate = document.getElementById('trans-date').value;
-            let entryDate = getToday(); // Lấy ngày hiện tại làm ngày ghi sổ tự động luôn
+            let entryDate = getToday(); 
 
-            if (!prodName.trim()) { alert("Chưa nhập Tên sản phẩm!"); return; }
             if (!amount || amount <= 0) { alert("Số lượng phải lớn hơn 0!"); return; }
 
             showStatus(`Đang lưu vào sổ sách...`, "loading");
@@ -266,7 +345,7 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify({ 
-                    action: 'update', maSP: currentScannedCode, prod_name: prodName,
+                    action: 'update', maSP: maSP, prod_name: prodName,
                     amount: amount, trans_type: transType, trans_date: transDate,
                     entry_date: entryDate, obj_name: objName
                 })
@@ -275,10 +354,10 @@
             .then(data => {
                 if(data.status === 'success') {
                     showStatus(data.message, "success");
+                    fetchDataInit(); // Tự động cập nhật lại kho ngầm sau khi lưu
                 } else {
                     showStatus(`Lỗi: ${data.message}`, "error");
                 }
-                // Dừng 3 giây cho các cô chú đọc thông báo thành công
                 setTimeout(() => { goBackToMenu(); }, 3000); 
             })
             .catch(err => {
@@ -287,11 +366,12 @@
             });
         }
 
+        // ---------- XEM TỒN KHO ----------
         function openInventory() {
             mainMenu.style.display = "none";
             inventorySection.style.display = "block";
             statusDiv.style.display = "block";
-            showStatus("Đang tải danh sách tồn kho...", "loading");
+            showStatus("Đang tải danh sách...", "loading");
             
             let listDiv = document.getElementById('inventory-list');
             listDiv.innerHTML = ""; 
@@ -309,26 +389,14 @@
                         listDiv.innerHTML = "<p style='text-align:center; font-size:20px; color:#666;'>Kho chưa có hàng nào</p>";
                         return;
                     }
-                    
                     data.inventory.forEach(item => {
-                        let div = document.createElement('div');
-                        div.className = "inv-item";
-                        div.innerHTML = `
-                            <div>
-                                <div class="inv-name">${item.tenSP}</div>
-                                <div class="inv-code">Mã: ${item.maSP}</div>
-                            </div>
-                            <div class="inv-qty">${item.ending}</div>
-                        `;
+                        let div = document.createElement('div'); div.className = "inv-item";
+                        div.innerHTML = `<div><div class="inv-name">${item.tenSP}</div><div class="inv-code">Mã: ${item.maSP}</div></div><div class="inv-qty">${item.ending}</div>`;
                         listDiv.appendChild(div);
                     });
-                } else {
-                    showStatus("Bị lỗi khi tải tồn kho!", "error");
                 }
             })
-            .catch(err => {
-                showStatus("Lỗi mạng! Không xem được.", "error");
-            });
+            .catch(err => { showStatus("Lỗi mạng! Không xem được.", "error"); });
         }
     </script>
 </body>
