@@ -3,28 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WMS Scanner - Log Giao Dịch</title>
+    <title>WMS Inventory Log</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         body { font-family: -apple-system, sans-serif; padding: 15px; text-align: center; background: #f8fafc; margin: 0; }
-        .container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); max-width: 500px; margin: 0 auto; }
+        .container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); max-width: 500px; margin: 0 auto; text-align: left; }
+        h2 { text-align: center; color: #0f172a; margin-top: 0;}
+        
         #reader { width: 100%; border-radius: 8px; overflow: hidden; margin-bottom: 15px; }
+        #input-form { display: none; background: #eff6ff; padding: 15px; border-radius: 8px; border: 1px solid #bfdbfe; }
         
-        #input-form { display: none; background: #eff6ff; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #bfdbfe; text-align: left;}
-        .sp-info { font-size: 18px; font-weight: bold; color: #1e3a8a; margin-bottom: 5px; text-align: center;}
-        .qty-info { font-size: 14px; color: #475569; margin-bottom: 15px; text-align: center;}
+        .sp-info { font-size: 14px; color: #64748b; margin-bottom: 5px; text-align: center; }
+        .qty-info { font-size: 16px; font-weight: bold; color: #1e3a8a; margin-bottom: 15px; text-align: center; }
         
-        label { font-weight: bold; font-size: 14px; color: #334155; display: block; margin-bottom: 5px; }
-        select, input[type="number"], input[type="text"] { width: 100%; padding: 12px; font-size: 16px; border: 1px solid #cbd5e1; border-radius: 6px; margin-bottom: 15px; box-sizing: border-box; }
+        label { font-weight: 600; font-size: 13px; color: #334155; display: block; margin-bottom: 5px; }
+        input, select { width: 100%; padding: 10px; font-size: 15px; border: 1px solid #cbd5e1; border-radius: 6px; margin-bottom: 12px; box-sizing: border-box; }
+        input:disabled { background-color: #e2e8f0; color: #64748b; }
         
-        #vendor-group { display: none; /* Mặc định ẩn, chỉ hiện khi chọn Nhập */ }
+        .flex-row { display: flex; gap: 10px; }
+        .flex-row > div { flex: 1; }
         
-        .btn-group { display: flex; justify-content: space-between; gap: 10px; }
-        button { padding: 12px; font-size: 16px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; flex: 1; }
+        .btn-group { display: flex; gap: 10px; margin-top: 10px; }
+        button { padding: 12px; font-size: 15px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; flex: 1; }
         .btn-submit { background: #2563eb; color: white; }
         .btn-cancel { background: #e2e8f0; color: #475569; }
 
-        #status { padding: 15px; border-radius: 8px; font-weight: bold; font-size: 15px; margin-top: 15px;}
+        #status { padding: 15px; border-radius: 8px; font-weight: bold; font-size: 14px; margin-top: 15px; text-align: center;}
         .success { background-color: #dcfce7; color: #166534; }
         .error { background-color: #fee2e2; color: #991b1b; }
         .loading { background-color: #f1f5f9; color: #334155; }
@@ -33,30 +37,48 @@
 <body>
 
     <div class="container">
-        <h2>Quản Lý Giao Dịch</h2>
+        <h2>Nhập/Xuất Kho</h2>
         
         <div id="scanner-section">
             <div id="reader"></div>
         </div>
 
         <div id="input-form">
-            <div class="sp-info" id="sp-name">Tên Sản Phẩm</div>
+            <div class="sp-info" id="display-maSP">Mã: </div>
+            
+            <label>Tên Sản Phẩm (prod_name)</label>
+            <input type="text" id="prod-name" placeholder="Gõ tên SP nếu quét lần đầu...">
+            
             <div class="qty-info" id="sp-qty">Tồn hiện tại: 0</div>
             
-            <label>Loại Giao Dịch</label>
-            <select id="trans-type" onchange="toggleVendor()">
-                <option value="Xuất" selected>Xuất kho</option>
-                <option value="Nhập">Nhập kho</option>
-            </select>
-
-            <div id="vendor-group">
-                <label>Nhà Cung Cấp (obj_name)</label>
-                <input type="text" id="obj-name" placeholder="Ví dụ: Cty ABC...">
+            <div class="flex-row">
+                <div>
+                    <label>Loại Giao Dịch</label>
+                    <select id="trans-type" onchange="toggleFormLogic()">
+                        <option value="Nhập" selected>Nhập kho</option>
+                        <option value="Xuất">Xuất kho</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Số lượng (base_qty)</label>
+                    <input type="number" id="input-amount" value="1" min="1">
+                </div>
             </div>
 
-            <label>Số lượng (base_qty)</label>
-            <input type="number" id="input-amount" value="1" min="1">
-            
+            <div class="flex-row">
+                <div>
+                    <label>Ngày GD (trans_date)</label>
+                    <input type="date" id="trans-date">
+                </div>
+                <div>
+                    <label>Ngày Nhập Liệu (entry_date)</label>
+                    <input type="date" id="entry-date">
+                </div>
+            </div>
+
+            <label>Đối Tượng (obj_name)</label>
+            <input type="text" id="obj-name" placeholder="Ví dụ: Công ty ABC, Nhà PP XYZ...">
+
             <div class="btn-group">
                 <button class="btn-cancel" onclick="cancelInput()">Hủy bỏ</button>
                 <button class="btn-submit" onclick="submitUpdate()">Lưu Giao Dịch</button>
@@ -67,30 +89,33 @@
     </div>
 
     <script>
-        // DÁN LẠI LINK API VÀO ĐÂY
+        // DÁN LẠI LINK API CỦA BẠN VÀO ĐÂY
         const API_URL = "https://script.google.com/macros/s/AKfycbxZi7yFbogjlAfeRKAUkVXKnkYYli0MmByKCpVSNwuK-9_CWLHBijH8fF5trnmIX1yW0A/exec"; 
         
         const statusDiv = document.getElementById('status');
         const inputForm = document.getElementById('input-form');
         const scannerSection = document.getElementById('scanner-section');
-        const vendorGroup = document.getElementById('vendor-group');
-        const transTypeSelect = document.getElementById('trans-type');
         
         const html5QrCode = new Html5Qrcode("reader");
         let isProcessing = false;
         let currentScannedCode = "";
 
+        // Set ngày mặc định là hôm nay
+        function getToday() { return new Date().toISOString().split('T')[0]; }
+
         html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, onScanSuccess)
             .then(() => { statusDiv.innerText = "Sẵn sàng: Đưa mã vào khung hình"; })
             .catch((err) => { statusDiv.innerText = "Lỗi Camera."; statusDiv.className = "error"; });
 
-        // Hàm ẩn hiện khung nhập Nhà Cung Cấp
-        function toggleVendor() {
-            if (transTypeSelect.value === "Nhập") {
-                vendorGroup.style.display = "block";
+        function toggleFormLogic() {
+            let type = document.getElementById('trans-type').value;
+            let objInput = document.getElementById('obj-name');
+            if (type === "Xuất") {
+                objInput.value = "Khách lẻ";
+                objInput.disabled = true; // Khóa mỏ, không cho sửa
             } else {
-                vendorGroup.style.display = "none";
-                document.getElementById('obj-name').value = ""; // Clear dữ liệu khi chọn lại Xuất
+                objInput.value = "";
+                objInput.disabled = false;
             }
         }
 
@@ -99,7 +124,7 @@
             isProcessing = true;
             currentScannedCode = decodedText;
             
-            statusDiv.innerText = `Đang tải thông tin mã: ${decodedText}...`;
+            statusDiv.innerText = `Đang tra cứu kho: ${decodedText}...`;
             statusDiv.className = "loading";
 
             fetch(API_URL, {
@@ -113,38 +138,43 @@
                     scannerSection.style.display = "none";
                     inputForm.style.display = "block";
                     
-                    document.getElementById('sp-name').innerText = data.tenSP;
+                    document.getElementById('display-maSP').innerText = `Mã SP: ${decodedText}`;
                     document.getElementById('sp-qty').innerText = `Tồn hiện tại: ${data.currentQty}`;
                     
-                    // Reset Form
+                    // Nếu là mã cũ thì điền sẵn tên, mã mới thì để trống cho user gõ
+                    document.getElementById('prod-name').value = data.tenSP;
+                    
+                    // Reset các ô nhập liệu
                     document.getElementById('input-amount').value = 1;
-                    transTypeSelect.value = "Xuất"; 
-                    toggleVendor(); // Đảm bảo trạng thái UI khớp với lựa chọn mặc định
+                    document.getElementById('trans-date').value = getToday();
+                    document.getElementById('entry-date').value = getToday();
+                    document.getElementById('trans-type').value = "Nhập"; 
+                    toggleFormLogic(); 
 
-                    statusDiv.innerText = "Vui lòng nhập chi tiết giao dịch.";
+                    statusDiv.innerText = data.isNew ? "Mã mới! Vui lòng nhập Tên sản phẩm." : "Nhập chi tiết giao dịch.";
                     statusDiv.className = "success";
-                } else {
-                    statusDiv.innerText = data.message;
-                    statusDiv.className = "error";
-                    setTimeout(() => { resetScanner(); }, 2500);
                 }
             })
             .catch(err => {
-                statusDiv.innerText = "Lỗi đường truyền!";
+                statusDiv.innerText = "Lỗi mạng!";
                 statusDiv.className = "error";
                 setTimeout(() => { resetScanner(); }, 2500);
             });
         }
 
         function submitUpdate() {
+            let prodName = document.getElementById('prod-name').value;
             let amount = document.getElementById('input-amount').value;
-            let transType = transTypeSelect.value;
+            let transType = document.getElementById('trans-type').value;
             let objName = document.getElementById('obj-name').value;
+            let transDate = document.getElementById('trans-date').value;
+            let entryDate = document.getElementById('entry-date').value;
 
-            if (!amount || amount <= 0) { alert("Số lượng phải lớn hơn 0"); return; }
-            if (transType === "Nhập" && objName.trim() === "") { alert("Vui lòng nhập Nhà cung cấp"); return; }
+            if (!prodName.trim()) { alert("Vui lòng nhập Tên sản phẩm"); return; }
+            if (!amount || amount <= 0) { alert("Số lượng không hợp lệ"); return; }
+            if (transType === "Nhập" && !objName.trim()) { alert("Vui lòng nhập Nhà cung cấp"); return; }
 
-            statusDiv.innerText = `Đang lưu giao dịch...`;
+            statusDiv.innerText = `Đang ghi Log...`;
             statusDiv.className = "loading";
             inputForm.style.display = "none";
 
@@ -154,8 +184,11 @@
                 body: JSON.stringify({ 
                     action: 'update', 
                     maSP: currentScannedCode, 
+                    prod_name: prodName,
                     amount: amount,
                     trans_type: transType,
+                    trans_date: transDate,
+                    entry_date: entryDate,
                     obj_name: objName
                 })
             })
@@ -168,12 +201,12 @@
                     statusDiv.innerText = `Lỗi: ${data.message}`;
                     statusDiv.className = "error";
                 }
-                setTimeout(() => { resetScanner(); }, 3000);
+                setTimeout(() => { resetScanner(); }, 2500);
             })
             .catch(err => {
                 statusDiv.innerText = "Lỗi kết nối máy chủ!";
                 statusDiv.className = "error";
-                setTimeout(() => { resetScanner(); }, 3000);
+                setTimeout(() => { resetScanner(); }, 2500);
             });
         }
 
