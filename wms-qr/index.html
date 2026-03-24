@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WMS Live Scanner</title>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        body { font-family: -apple-system, sans-serif; padding: 15px; text-align: center; background: #f8fafc; margin: 0; }
+        .container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); max-width: 500px; margin: 0 auto; }
+        #reader { width: 100%; border-radius: 8px; overflow: hidden; margin-bottom: 15px; }
+        #status { margin-top: 15px; padding: 15px; border-radius: 8px; font-weight: bold; font-size: 15px; }
+        .success { background-color: #dcfce7; color: #166534; }
+        .error { background-color: #fee2e2; color: #991b1b; }
+        .loading { background-color: #f1f5f9; color: #334155; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Máy Quét Nhập Kho</h2>
+        <div id="reader"></div>
+        <div id="status" class="loading">Đang khởi động camera...</div>
+    </div>
+
+    <script>
+        // THAY LINK APP SCRIPT VÀO DƯỚI ĐÂY (Giữ nguyên dấu ngoặc kép)
+        const API_URL = "https://script.google.com/macros/s/AKfycbxZi7yFbogjlAfeRKAUkVXKnkYYli0MmByKCpVSNwuK-9_CWLHBijH8fF5trnmIX1yW0A/exec"; 
+        
+        const statusDiv = document.getElementById('status');
+        const html5QrCode = new Html5Qrcode("reader");
+        let isProcessing = false;
+
+        // Bật camera sau
+        html5QrCode.start(
+            { facingMode: "environment" }, 
+            { fps: 10, qrbox: { width: 250, height: 250 } }, 
+            onScanSuccess
+        ).then(() => {
+            statusDiv.innerText = "Sẵn sàng: Đưa mã vào khung hình";
+        }).catch((err) => {
+            statusDiv.innerText = "Lỗi: Vui lòng cấp quyền Camera cho trình duyệt!";
+            statusDiv.className = "error";
+        });
+
+        function onScanSuccess(decodedText) {
+            if (isProcessing) return;
+            isProcessing = true;
+            
+            statusDiv.innerText = `Đang xử lý: ${decodedText}...`;
+            statusDiv.className = "loading";
+
+            fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ maSP: decodedText })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.status === 'success') {
+                    statusDiv.innerText = data.message;
+                    statusDiv.className = "success";
+                } else {
+                    statusDiv.innerText = `Lỗi: ${data.message}`;
+                    statusDiv.className = "error";
+                }
+                setTimeout(() => { 
+                    isProcessing = false; 
+                    statusDiv.innerText = "Sẵn sàng quét mã tiếp theo...";
+                    statusDiv.className = "loading";
+                }, 2000); // Nghỉ 2 giây để xem kết quả rồi quét tiếp
+            })
+            .catch(err => {
+                statusDiv.innerText = "Lỗi kết nối mạng!";
+                statusDiv.className = "error";
+                setTimeout(() => { isProcessing = false; }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
