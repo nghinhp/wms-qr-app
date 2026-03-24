@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WMS Inventory Log</title>
+    <title>WMS Master System</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         body { font-family: -apple-system, sans-serif; padding: 15px; text-align: center; background: #f8fafc; margin: 0; }
@@ -37,7 +37,7 @@
 <body>
 
     <div class="container">
-        <h2>Nhập/Xuất Kho</h2>
+        <h2>Hệ Thống Kho</h2>
         
         <div id="scanner-section">
             <div id="reader"></div>
@@ -46,17 +46,17 @@
         <div id="input-form">
             <div class="sp-info" id="display-maSP">Mã: </div>
             
-            <label>Tên Sản Phẩm (prod_name)</label>
-            <input type="text" id="prod-name" placeholder="Gõ tên SP nếu quét lần đầu...">
+            <label>Tên Sản Phẩm</label>
+            <input type="text" id="prod-name" placeholder="Gõ tên SP (nếu mã mới)...">
             
             <div class="qty-info" id="sp-qty">Tồn hiện tại: 0</div>
             
             <div class="flex-row">
                 <div>
-                    <label>Loại Giao Dịch</label>
-                    <select id="trans-type" onchange="toggleFormLogic()">
-                        <option value="Nhập" selected>Nhập kho</option>
-                        <option value="Xuất">Xuất kho</option>
+                    <label>Loại GD (trans_type)</label>
+                    <select id="trans-type" onchange="toggleObjList()">
+                        <option value="IN" selected>IN (Nhập kho)</option>
+                        <option value="OUT">OUT (Xuất kho)</option>
                     </select>
                 </div>
                 <div>
@@ -65,23 +65,24 @@
                 </div>
             </div>
 
+            <label>Đối Tượng (obj_name)</label>
+            <select id="obj-select">
+                </select>
+
             <div class="flex-row">
                 <div>
                     <label>Ngày GD (trans_date)</label>
                     <input type="date" id="trans-date">
                 </div>
                 <div>
-                    <label>Ngày Nhập Liệu (entry_date)</label>
+                    <label>Ngày Ghi (entry_date)</label>
                     <input type="date" id="entry-date">
                 </div>
             </div>
 
-            <label>Đối Tượng (obj_name)</label>
-            <input type="text" id="obj-name" placeholder="Ví dụ: Công ty ABC, Nhà PP XYZ...">
-
             <div class="btn-group">
                 <button class="btn-cancel" onclick="cancelInput()">Hủy bỏ</button>
-                <button class="btn-submit" onclick="submitUpdate()">Lưu Giao Dịch</button>
+                <button class="btn-submit" onclick="submitUpdate()">Xác nhận</button>
             </div>
         </div>
 
@@ -89,33 +90,46 @@
     </div>
 
     <script>
-        // DÁN LẠI LINK API CỦA BẠN VÀO ĐÂY
+        // THAY LINK API CỦA BẠN VÀO ĐÂY (Giữ nguyên ngoặc kép)
         const API_URL = "https://script.google.com/macros/s/AKfycbxZi7yFbogjlAfeRKAUkVXKnkYYli0MmByKCpVSNwuK-9_CWLHBijH8fF5trnmIX1yW0A/exec"; 
         
         const statusDiv = document.getElementById('status');
         const inputForm = document.getElementById('input-form');
         const scannerSection = document.getElementById('scanner-section');
+        const transTypeSelect = document.getElementById('trans-type');
+        const objSelect = document.getElementById('obj-select');
         
         const html5QrCode = new Html5Qrcode("reader");
         let isProcessing = false;
         let currentScannedCode = "";
+        
+        let cachedCustomers = [];
+        let cachedVendors = [];
 
-        // Set ngày mặc định là hôm nay
         function getToday() { return new Date().toISOString().split('T')[0]; }
 
         html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, onScanSuccess)
             .then(() => { statusDiv.innerText = "Sẵn sàng: Đưa mã vào khung hình"; })
             .catch((err) => { statusDiv.innerText = "Lỗi Camera."; statusDiv.className = "error"; });
 
-        function toggleFormLogic() {
-            let type = document.getElementById('trans-type').value;
-            let objInput = document.getElementById('obj-name');
-            if (type === "Xuất") {
-                objInput.value = "Khách lẻ";
-                objInput.disabled = true; // Khóa mỏ, không cho sửa
+        function toggleObjList() {
+            let type = transTypeSelect.value;
+            objSelect.innerHTML = ""; 
+            
+            let targetList = type === "IN" ? cachedVendors : cachedCustomers;
+            
+            if (targetList.length === 0) {
+                let opt = document.createElement('option');
+                opt.value = type === "IN" ? "Nhà cung cấp lẻ" : "Khách lẻ";
+                opt.text = type === "IN" ? "Nhà cung cấp lẻ" : "Khách lẻ";
+                objSelect.appendChild(opt);
             } else {
-                objInput.value = "";
-                objInput.disabled = false;
+                targetList.forEach(name => {
+                    let opt = document.createElement('option');
+                    opt.value = name;
+                    opt.text = name;
+                    objSelect.appendChild(opt);
+                });
             }
         }
 
@@ -124,7 +138,7 @@
             isProcessing = true;
             currentScannedCode = decodedText;
             
-            statusDiv.innerText = `Đang tra cứu kho: ${decodedText}...`;
+            statusDiv.innerText = `Đang tải data từ 6 Sheet...`;
             statusDiv.className = "loading";
 
             fetch(API_URL, {
@@ -135,23 +149,27 @@
             .then(res => res.json())
             .then(data => {
                 if(data.status === 'success') {
+                    cachedCustomers = data.customers;
+                    cachedVendors = data.vendors;
+                    
                     scannerSection.style.display = "none";
                     inputForm.style.display = "block";
                     
                     document.getElementById('display-maSP').innerText = `Mã SP: ${decodedText}`;
-                    document.getElementById('sp-qty').innerText = `Tồn hiện tại: ${data.currentQty}`;
+                    document.getElementById('sp-qty').innerText = `Tồn Ending: ${data.currentQty}`;
                     
-                    // Nếu là mã cũ thì điền sẵn tên, mã mới thì để trống cho user gõ
-                    document.getElementById('prod-name').value = data.tenSP;
+                    let prodInput = document.getElementById('prod-name');
+                    prodInput.value = data.tenSP;
+                    prodInput.disabled = !data.isNew; 
                     
-                    // Reset các ô nhập liệu
                     document.getElementById('input-amount').value = 1;
                     document.getElementById('trans-date').value = getToday();
                     document.getElementById('entry-date').value = getToday();
-                    document.getElementById('trans-type').value = "Nhập"; 
-                    toggleFormLogic(); 
+                    transTypeSelect.value = "IN"; 
+                    
+                    toggleObjList(); 
 
-                    statusDiv.innerText = data.isNew ? "Mã mới! Vui lòng nhập Tên sản phẩm." : "Nhập chi tiết giao dịch.";
+                    statusDiv.innerText = data.isNew ? "Mã mới! Vui lòng nhập Tên sản phẩm." : "Nhập số lượng & Đối tượng.";
                     statusDiv.className = "success";
                 }
             })
@@ -165,16 +183,15 @@
         function submitUpdate() {
             let prodName = document.getElementById('prod-name').value;
             let amount = document.getElementById('input-amount').value;
-            let transType = document.getElementById('trans-type').value;
-            let objName = document.getElementById('obj-name').value;
+            let transType = transTypeSelect.value;
+            let objName = objSelect.value;
             let transDate = document.getElementById('trans-date').value;
             let entryDate = document.getElementById('entry-date').value;
 
             if (!prodName.trim()) { alert("Vui lòng nhập Tên sản phẩm"); return; }
             if (!amount || amount <= 0) { alert("Số lượng không hợp lệ"); return; }
-            if (transType === "Nhập" && !objName.trim()) { alert("Vui lòng nhập Nhà cung cấp"); return; }
 
-            statusDiv.innerText = `Đang ghi Log...`;
+            statusDiv.innerText = `Đang đồng bộ vào Database...`;
             statusDiv.className = "loading";
             inputForm.style.display = "none";
 
