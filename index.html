@@ -13,7 +13,8 @@
         .top-title { font-size: 24px; font-weight: bold; color: #003366; text-align: center; width: 100%; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
         
         .top-btn { position: absolute; padding: 12px 18px; font-size: 18px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; color: white; display: none; z-index: 1001;}
-        .btn-back { left: 10px; background-color: #d32f2f; }
+        .btn-back { left: 10px; background-color: #d32f2f; } /* Đỏ */
+        .btn-reload { left: 10px; background-color: #0056b3; } /* Xanh dương - Tải lại */
         .btn-save { right: 10px; background-color: #0056b3; }
         .btn-new-item { right: 10px; background-color: #008000; } 
 
@@ -64,16 +65,20 @@
 
         /* Bảng KYC chuẩn hóa nhập liệu */
         #dynamic-attributes-container { background: #e6f7ff; padding: 15px; border-radius: 8px; margin-bottom: 15px; display: none; border: 1px solid #91d5ff;}
-        .kyc-label { font-size: 17px; color: #003366; margin-bottom: 5px; }
-        .kyc-select { padding: 14px; font-size: 19px; border-radius: 8px; margin-bottom: 15px; border-color: #91d5ff;}
+        .kyc-label { font-size: 17px; color: #003366; margin-bottom: 5px; font-weight: bold;}
+        .kyc-select { padding: 14px; font-size: 19px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #91d5ff; width: 100%; background: #fff;}
+        .kyc-vendor-box { padding: 15px; background: #f0fdf4; border-radius: 8px; margin-bottom: 15px; border: 1px solid #bbf7d0; display: none;}
     </style>
 </head>
 <body>
 
     <div class="container">
         <div class="top-bar">
+            <button id="top-btn-reload" class="top-btn btn-reload" onclick="fetchDataInit()">TẢI LẠI</button>
             <button id="top-btn-back" class="top-btn btn-back" onclick="goBack()">ĐÓNG</button>
+            
             <div id="top-title" class="top-title">QUẢN LÝ KHO</div>
+            
             <button id="top-btn-new" class="top-btn btn-new-item" onclick="openNewItemForm()">TẠO MÃ</button>
             <button id="top-btn-save" class="top-btn btn-save" onclick="submitUpdate()">LƯU</button>
         </div>
@@ -97,6 +102,8 @@
                         <button class="cat-chip" onclick="filterCategory('BÁNH', this)">BÁNH</button>
                         <button class="cat-chip" onclick="filterCategory('KẸO', this)">KẸO</button>
                         <button class="cat-chip" onclick="filterCategory('NƯỚC NGỌT', this)">NƯỚC NGỌT</button>
+                        <button class="cat-chip" onclick="filterCategory('NƯỚC SUỐI', this)">NƯỚC SUỐI</button>
+                        <button class="cat-chip" onclick="filterCategory('NƯỚC TRÀ', this)">NƯỚC TRÀ</button>
                         <button class="cat-chip" onclick="filterCategory('KEM', this)">KEM</button>
                         <button class="cat-chip" onclick="filterCategory('SỮA', this)">SỮA</button>
                     </div>
@@ -121,25 +128,34 @@
                     
                     <div class="form-group" style="margin-bottom: 15px;">
                         <label>1. Chọn Nhóm Hàng trước:</label>
-                        <select id="prod-category" onchange="renderKYCFields()" style="background-color: #fff9e6; border-color: #ff9900;">
+                        <select id="prod-category" onchange="handleCategoryChange(this)" style="background-color: #fff9e6; border-color: #ff9900;">
                             <option value="BÁNH" selected>BÁNH</option>
                             <option value="KẸO">KẸO</option>
                             <option value="NƯỚC NGỌT">NƯỚC NGỌT</option>
+                            <option value="NƯỚC SUỐI">NƯỚC SUỐI</option>
+                            <option value="NƯỚC TRÀ">NƯỚC TRÀ</option>
                             <option value="KEM">KEM</option>
                             <option value="SỮA">SỮA</option>
                             <option value="KHÁC">KHÁC</option>
+                            <option value="ADD_NEW" style="color:blue; font-weight:bold;">+ Thêm nhóm mới...</option>
                         </select>
                     </div>
 
                     <div id="dynamic-attributes-container"></div>
 
+                    <div id="kyc-vendor-box" class="kyc-vendor-box">
+                        <label class="kyc-label" style="color: #166534;">- Nhà Cung Cấp (Tùy chọn):</label>
+                        <select id="kyc-vendor" class="kyc-select" style="border-color:#bbf7d0;" onchange="handleDropdownAddNew(this)">
+                            </select>
+                    </div>
+
                     <div class="form-group">
                         <label style="color: #008000;">Tên chuẩn sẽ được ghi vào sổ:</label>
-                        <p style="font-size: 15px; color: #666; margin-top: 0; font-style: italic;">(Máy tự ghép, cô chú có thể nhấp vào để gõ sửa thêm)</p>
+                        <p style="font-size: 15px; color: #666; margin-top: 0; font-style: italic;">(Máy tự ghép chữ, có thể nhấp vào gõ thêm)</p>
                         <input type="text" id="prod-name" placeholder="Máy sẽ tự điền tên vào đây..." style="border: 2px solid #008000; background: #f0fff0;">
                     </div>
                     
-                    <button type="button" class="btn-confirm-new" onclick="confirmNewItemInfo()">Tiếp tục - Điền số lượng</button>
+                    <button type="button" class="btn-confirm-new" onclick="confirmNewItemInfo()">Đã ghép xong Tên - Điền số lượng</button>
                 </div>
                 
                 <div id="transaction-details" style="display:none;">
@@ -158,7 +174,7 @@
 
                     <div class="form-group" id="group-obj" style="display:none;">
                         <label>Xe của ai giao tới?</label>
-                        <select id="obj-select"></select>
+                        <select id="obj-select" onchange="handleDropdownAddNew(this)"></select>
                     </div>
 
                     <div class="form-group">
@@ -176,8 +192,7 @@
         // DÁN LẠI LINK API VÀO ĐÂY:
         const API_URL = "https://script.google.com/macros/s/AKfycbxZi7yFbogjlAfeRKAUkVXKnkYYli0MmByKCpVSNwuK-9_CWLHBijH8fF5trnmIX1yW0A/exec";
         
-        // --- CẤU HÌNH TỪ ĐIỂN KYC CHO SẢN PHẨM ---
-        // Bác có thể tự thêm sửa các từ khóa ở đây vô tư
+        // --- CẤU HÌNH TỪ ĐIỂN KYC SẢN PHẨM ---
         const kycConfig = {
             "BÁNH": [
                 { id: "kyc_loai", label: "Loại Bánh gì?", opts: ["", "Bánh Tráng", "Bánh Quy", "Bánh Snack", "Bánh Gấu", "Bánh Cuộn", "Bánh Xốp"] },
@@ -208,6 +223,7 @@
         
         const topTitle = document.getElementById('top-title');
         const btnHeadBack = document.getElementById('top-btn-back');
+        const btnHeadReload = document.getElementById('top-btn-reload');
         const btnHeadSave = document.getElementById('top-btn-save');
         const btnHeadNew = document.getElementById('top-btn-new');
 
@@ -227,11 +243,11 @@
 
         window.onload = function() {
             dateInput.value = new Date().toISOString().split('T')[0]; 
-            showStatus("Đang nạp máy móc...", "loading");
             fetchDataInit();
         };
 
         function fetchDataInit() {
+            showStatus("Đang nạp máy móc...", "loading");
             fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'init' }) })
             .then(res => res.json()).then(data => {
                 if(data.status === 'success') {
@@ -240,20 +256,48 @@
                     cachedProducts.forEach(p => {
                         let opt = document.createElement('option'); opt.value = `${p.maSP} - ${p.tenSP}`; dl.appendChild(opt);
                     });
+                    populateKYCVendor(); // Tự động đổ danh sách Vendor vào Khung ghép tên KYC
                     statusDiv.style.display = "none";
                 }
-            });
+            }).catch(e => showStatus("Mạng yếu, mở lại giùm con.", "error"));
         }
 
+        function populateKYCVendor() {
+            let vSelect = document.getElementById('kyc-vendor');
+            vSelect.innerHTML = '<option value="">-- Bấm chọn (Không bắt buộc) --</option>';
+            cachedVendors.forEach(v => {
+                let opt = document.createElement('option'); opt.value = v; opt.text = v; vSelect.appendChild(opt);
+            });
+            // Thêm nút + Thêm mới
+            let optNew = document.createElement('option'); optNew.value = "ADD_NEW"; optNew.text = "+ Thêm nhà cung cấp mới..."; optNew.style.color = "blue"; optNew.style.fontWeight = "bold"; vSelect.appendChild(optNew);
+        }
+
+        function getToday() { return new Date().toISOString().split('T')[0]; }
         function showStatus(msg, type) { statusDiv.innerHTML = msg; statusDiv.className = type; statusDiv.style.display="block";}
 
+        // --- CẬP NHẬT HEADER (Có Nút Tải Lại) ---
         function updateHeader(viewName) {
-            btnHeadBack.style.display = "none"; btnHeadSave.style.display = "none"; btnHeadNew.style.display = "none";
-            if(viewName === 'MENU') { topTitle.innerText = "QUẢN LÝ KHO TỔNG"; } 
-            else if(viewName === 'LIST') { topTitle.innerText = ""; btnHeadBack.style.display = "block"; btnHeadNew.style.display = "block"; } 
-            else if(viewName === 'SCAN') { topTitle.innerText = "QUÉT MÃ"; btnHeadBack.style.display = "block"; } 
-            else if(viewName === 'FORM') { topTitle.innerText = "GHI SỔ"; btnHeadBack.style.display = "block";
-                if(currentFormState === "TRANS_INFO") btnHeadSave.style.display = "block"; 
+            btnHeadBack.style.display = "none"; 
+            btnHeadReload.style.display = "none"; 
+            btnHeadSave.style.display = "none"; 
+            btnHeadNew.style.display = "none";
+
+            if(viewName === 'MENU') {
+                topTitle.innerText = "QUẢN LÝ KHO TỔNG"; 
+                btnHeadReload.style.display = "block"; // Nút TẢI LẠI hiện ở Menu
+            } else if(viewName === 'LIST') {
+                topTitle.innerText = ""; 
+                btnHeadBack.style.display = "block"; 
+                btnHeadNew.style.display = "block"; 
+            } else if(viewName === 'SCAN') {
+                topTitle.innerText = "QUÉT MÃ";
+                btnHeadBack.style.display = "block"; 
+            } else if(viewName === 'FORM') {
+                topTitle.innerText = "GHI SỔ"; 
+                btnHeadBack.style.display = "block";
+                if(currentFormState === "TRANS_INFO") {
+                    btnHeadSave.style.display = "block"; 
+                }
             }
         }
 
@@ -270,6 +314,38 @@
             }
         }
 
+        // --- CƠ CHẾ + THÊM MỚI CHO TẤT CẢ DROPDOWN ---
+        function handleDropdownAddNew(selectElement) {
+            if (selectElement.value === "ADD_NEW") {
+                let newVal = prompt("Cô chú gõ thông tin mới vào đây nha:");
+                if (newVal && newVal.trim() !== "") {
+                    let opt = document.createElement('option');
+                    opt.value = newVal.trim(); opt.text = newVal.trim();
+                    selectElement.insertBefore(opt, selectElement.lastElementChild); // Chèn vào trước nút Add_New
+                    selectElement.value = newVal.trim();
+                } else {
+                    selectElement.value = ""; // Hủy thì trả về rỗng
+                    if(selectElement.id === "obj-select") selectElement.value = "Nhà cung cấp lẻ";
+                }
+            }
+            autoGenName(); 
+        }
+
+        function handleCategoryChange(sel) {
+            if(sel.value === "ADD_NEW") {
+                let newVal = prompt("Cô chú gõ tên Nhóm hàng mới vào đây:");
+                if(newVal && newVal.trim() !== "") {
+                    let opt = document.createElement('option');
+                    opt.value = newVal.trim().toUpperCase(); opt.text = newVal.trim().toUpperCase();
+                    sel.insertBefore(opt, sel.lastElementChild);
+                    sel.value = opt.value;
+                } else {
+                    sel.value = "KHÁC"; 
+                }
+            }
+            renderKYCFields();
+        }
+
         function toggleFormLogic() {
             let type = transTypeSelect.value;
             objSelect.innerHTML = ""; 
@@ -278,49 +354,75 @@
                 document.getElementById('group-obj').style.display = "block";
                 let opt = document.createElement('option'); opt.value = "Nhà cung cấp lẻ"; opt.text = "Nhà cung cấp lẻ"; objSelect.appendChild(opt);
                 cachedVendors.forEach(name => { let o = document.createElement('option'); o.value = name; o.text = name; objSelect.appendChild(o); });
+                
+                // Thêm nút Add_New cho form Nhập Kho
+                let optNew = document.createElement('option'); optNew.value = "ADD_NEW"; optNew.text = "+ Thêm nhà cung cấp mới..."; optNew.style.color = "blue"; optNew.style.fontWeight = "bold"; objSelect.appendChild(optNew);
             } else { 
                 labelAmount.innerText = "THỰC TẾ TRÊN KỆ ĐANG CÓ MẤY CÁI?"; labelAmount.style.color = "#d10000"; document.getElementById('input-amount').style.color = "#d10000";
                 document.getElementById('group-obj').style.display = "none"; 
             }
         }
 
-        // --- HÀM RENDER CÂU HỎI KYC DYNAMIC ---
+        // --- CƠ CHẾ RENDER CÂU HỎI KYC VÀ GHÉP TÊN ---
         function renderKYCFields() {
             let cat = document.getElementById('prod-category').value;
             let container = document.getElementById('dynamic-attributes-container');
             let fields = kycConfig[cat];
+            
+            // Luôn hiện ô Nhà Cung Cấp khi ở form Tạo mới
+            document.getElementById('kyc-vendor-box').style.display = "block";
 
             if(fields && fields.length > 0) {
                 container.style.display = "block";
-                let html = `<p style="margin-top:0; font-weight:bold; color:#0056b3; margin-bottom:15px; font-size:16px;">Mời cô chú trả lời để ghép tên:</p>`;
+                let html = `<p style="margin-top:0; font-weight:bold; color:#0056b3; margin-bottom:15px; font-size:16px;">Mời cô chú chọn để máy ghép tên:</p>`;
                 fields.forEach(f => {
                     html += `
                         <div style="margin-bottom:12px;">
                             <label class="kyc-label">- ${f.label}</label>
-                            <select class="kyc-select" onchange="autoGenName()" style="width:100%;">`;
+                            <select class="kyc-select kyc-field-dynamic" onchange="handleDropdownAddNew(this)">`;
                     f.opts.forEach(opt => {
                         html += `<option value="${opt}">${opt === "" ? "-- Bấm chọn --" : opt}</option>`;
                     });
+                    html += `<option value="ADD_NEW" style="color: blue; font-weight: bold;">+ Thêm mới...</option>`;
                     html += `</select></div>`;
                 });
                 container.innerHTML = html;
             } else {
-                // Nhóm KHÁC hoặc nhóm không có cấu hình -> Tự gõ
                 container.style.display = "none";
                 container.innerHTML = "";
             }
-            autoGenName(); // Xóa tên cũ nếu chuyển nhóm
+            autoGenName(); 
         }
 
-        // Tự động ghép nối các lựa chọn thành Chuỗi Tên
         function autoGenName() {
-            let selects = document.querySelectorAll('.kyc-select');
-            let nameParts = [];
-            selects.forEach(s => {
-                if(s.value !== "") nameParts.push(s.value);
-            });
-            // Nối bằng dấu cách
-            document.getElementById('prod-name').value = nameParts.join(" ");
+            let container = document.getElementById('dynamic-attributes-container');
+            let baseName = "";
+            
+            if (container.style.display !== "none") {
+                let selects = document.querySelectorAll('.kyc-field-dynamic');
+                let nameParts = [];
+                selects.forEach(s => {
+                    if(s.value !== "" && s.value !== "ADD_NEW") nameParts.push(s.value);
+                });
+                baseName = nameParts.join(" ");
+            } else {
+                // Nhóm KHÁC (Tự gõ)
+                let currentName = document.getElementById('prod-name').value;
+                if (currentName.includes(" - ")) { baseName = currentName.split(" - ")[0]; } 
+                else { baseName = currentName; }
+            }
+            
+            let vendor = document.getElementById('kyc-vendor').value;
+            let finalName = baseName.trim();
+            
+            // Ép thêm nhà cung cấp vào cuối tên
+            if (finalName !== "" && vendor !== "" && vendor !== "ADD_NEW") {
+                finalName = finalName + " - " + vendor;
+            }
+            
+            if (finalName !== "") {
+                document.getElementById('prod-name').value = finalName;
+            }
         }
 
         function openNewItemForm() {
@@ -331,10 +433,11 @@
             currentFormState = "NEW_INFO"; updateHeader('FORM');
             
             newItemSection.style.display = "block"; transDetails.style.display = "none";
-            document.getElementById('prod-category').value = "BÁNH"; // Mặc định là Bánh
+            document.getElementById('prod-category').value = "BÁNH"; 
             document.getElementById('prod-name').disabled = false;
+            document.getElementById('kyc-vendor').value = ""; // Reset nhà cung cấp
             
-            renderKYCFields(); // Kích hoạt form chọn tên tự động
+            renderKYCFields(); 
 
             transTypeSelect.value = (currentListMode === "STOCK") ? "COUNT" : "IN"; toggleFormLogic(); 
         }
@@ -353,16 +456,15 @@
                 fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'get_info', maSP: decodedText, trans_date: dateInput.value }) })
                 .then(res => res.json()).then(data => {
                     scannerSection.style.display = "none"; inputForm.style.display = "block"; statusDiv.style.display = "none";
-                    currentScreen = "FORM"; previousScreen = "MENU";
-                    document.getElementById('group-search').style.display = "none";
+                    currentScreen = "FORM"; previousScreen = "MENU"; document.getElementById('group-search').style.display = "none";
                     
                     if(data.isNew) {
                         document.getElementById('sp-qty').innerText = `MÓN NÀY MỚI TINH`;
                         currentFormState = "NEW_INFO"; updateHeader('FORM');
                         newItemSection.style.display = "block"; transDetails.style.display = "none";
-                        document.getElementById('prod-category').value = "BÁNH";
-                        document.getElementById('prod-name').disabled = false;
-                        renderKYCFields(); // Mở KYC
+                        document.getElementById('prod-category').value = "BÁNH"; document.getElementById('prod-name').disabled = false;
+                        document.getElementById('kyc-vendor').value = "";
+                        renderKYCFields(); 
                     } else {
                         document.getElementById('sp-qty').innerText = `${data.tenSP}\n${data.currentQty}`;
                         currentFormState = "TRANS_INFO"; updateHeader('FORM');
@@ -397,11 +499,10 @@
                     currentFormState = "NEW_INFO"; updateHeader('FORM');
                     document.getElementById('sp-qty').innerText = `MÓN NÀY MỚI TINH`;
                     newItemSection.style.display = "block"; transDetails.style.display = "none";
-                    document.getElementById('prod-category').value = "BÁNH";
-                    document.getElementById('prod-name').disabled = false;
-                    renderKYCFields(); // Mở KYC cho hàng gõ sai tên / hàng lạ
-                    // Truyền lại tên bác vừa gõ vô ô Tên
-                    document.getElementById('prod-name').value = val;
+                    document.getElementById('prod-category').value = "BÁNH"; document.getElementById('prod-name').disabled = false;
+                    document.getElementById('kyc-vendor').value = "";
+                    renderKYCFields(); 
+                    document.getElementById('prod-name').value = val; 
                 } else {
                     currentFormState = "TRANS_INFO"; updateHeader('FORM');
                     document.getElementById('sp-qty').innerText = `${data.tenSP}\n${data.currentQty}`; 
@@ -421,11 +522,9 @@
         function jumpToManualFromInv(maSP, tenSP, qty, mode) {
             formMode = "MANUAL"; currentScannedCode = ""; currentScreen = "FORM"; previousScreen = "LIST"; 
             inventorySection.style.display = "none"; inputForm.style.display = "block"; 
-            currentFormState = "TRANS_INFO"; updateHeader('FORM');
-            document.getElementById('group-search').style.display = "block";
+            currentFormState = "TRANS_INFO"; updateHeader('FORM'); document.getElementById('group-search').style.display = "block";
             newItemSection.style.display = "none"; transDetails.style.display = "block";
-            manualProdInput.value = `${maSP} - ${tenSP}`;
-            document.getElementById('sp-qty').innerText = `Món: ${tenSP}\n${qty}`; 
+            manualProdInput.value = `${maSP} - ${tenSP}`; document.getElementById('sp-qty').innerText = `Món: ${tenSP}\n${qty}`; 
             document.getElementById('input-amount').value = ""; 
             transTypeSelect.value = (mode === "STOCK") ? "COUNT" : "IN"; toggleFormLogic(); statusDiv.style.display = "none";
         }
