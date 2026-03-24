@@ -17,6 +17,7 @@
         .top-btn { position: absolute; padding: 12px 18px; font-size: 18px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; color: white; display: none; z-index: 1001;}
         .btn-back { left: 10px; background-color: #d32f2f; }
         .btn-save { right: 10px; background-color: #0056b3; }
+        .btn-new-item { right: 10px; background-color: #008000; } /* Nút Tạo Mã Xanh Lá */
 
         .main-content { padding: 15px; flex-grow: 1; display: flex; flex-direction: column; }
         
@@ -72,6 +73,8 @@
         <div class="top-bar">
             <button id="top-btn-back" class="top-btn btn-back" onclick="goBack()">ĐÓNG</button>
             <div id="top-title" class="top-title">QUẢN LÝ KHO</div>
+            
+            <button id="top-btn-new" class="top-btn btn-new-item" onclick="openNewItemForm()">TẠO MÃ</button>
             <button id="top-btn-save" class="top-btn btn-save" onclick="submitUpdate()">LƯU</button>
         </div>
 
@@ -169,7 +172,7 @@
     </div>
 
     <script>
-        // DÁN LẠI LINK API CỦA BẠN VÀO ĐÂY:
+        // DÁN LẠI LINK API VÀO ĐÂY:
         const API_URL = "https://script.google.com/macros/s/AKfycbxZi7yFbogjlAfeRKAUkVXKnkYYli0MmByKCpVSNwuK-9_CWLHBijH8fF5trnmIX1yW0A/exec";
         
         const mainMenu = document.getElementById('main-menu');
@@ -181,6 +184,7 @@
         const topTitle = document.getElementById('top-title');
         const btnHeadBack = document.getElementById('top-btn-back');
         const btnHeadSave = document.getElementById('top-btn-save');
+        const btnHeadNew = document.getElementById('top-btn-new');
 
         const transTypeSelect = document.getElementById('trans-type');
         const objSelect = document.getElementById('obj-select');
@@ -196,7 +200,6 @@
         let currentFormState = "SELECT_PROD"; 
         let currentListMode = "VIEW"; 
         
-        // TRẠNG THÁI ĐIỀU HƯỚNG MỚI
         let currentScreen = "MENU"; 
         let previousScreen = "MENU"; 
         
@@ -229,33 +232,36 @@
         function showStatus(msg, type) { statusDiv.innerHTML = msg; statusDiv.className = type; statusDiv.style.display="block";}
 
         function updateHeader(viewName) {
+            btnHeadBack.style.display = "none"; 
+            btnHeadSave.style.display = "none";
+            btnHeadNew.style.display = "none";
+
             if(viewName === 'MENU') {
                 topTitle.innerText = "QUẢN LÝ KHO TỔNG"; 
-                btnHeadBack.style.display = "none"; btnHeadSave.style.display = "none";
             } else if(viewName === 'LIST') {
                 topTitle.innerText = ""; 
-                btnHeadBack.style.display = "block"; btnHeadSave.style.display = "none";
+                btnHeadBack.style.display = "block"; 
+                btnHeadNew.style.display = "block"; // Hồi sinh nút TẠO MÃ ở danh sách!
             } else if(viewName === 'SCAN') {
                 topTitle.innerText = "QUÉT MÃ";
-                btnHeadBack.style.display = "block"; btnHeadSave.style.display = "none";
+                btnHeadBack.style.display = "block"; 
             } else if(viewName === 'FORM') {
                 topTitle.innerText = "GHI SỔ"; 
                 btnHeadBack.style.display = "block";
-                btnHeadSave.style.display = (currentFormState === "TRANS_INFO") ? "block" : "none";
+                if(currentFormState === "TRANS_INFO") {
+                    btnHeadSave.style.display = "block"; 
+                }
             }
         }
 
-        // HÀM LÙI LẠI THÔNG MINH
         function goBack() {
             if (currentScreen === "FORM" && previousScreen === "LIST") {
-                // Đang trong form mà xuất phát từ list -> Lùi về list
                 inputForm.style.display = "none";
                 inventorySection.style.display = "block";
                 statusDiv.style.display = "none";
                 currentScreen = "LIST";
                 updateHeader('LIST');
             } else {
-                // Về lại màn hình chính
                 if (html5QrCode && html5QrCode.isScanning) { html5QrCode.stop().catch(e => console.log(e)); }
                 scannerSection.style.display = "none"; inputForm.style.display = "none";
                 inventorySection.style.display = "none"; statusDiv.style.display = "none";
@@ -279,6 +285,26 @@
                 labelAmount.style.color = "#d10000"; document.getElementById('input-amount').style.color = "#d10000";
                 document.getElementById('group-obj').style.display = "none"; 
             }
+        }
+
+        // --- HÀM TẠO MÃ TỪ NÚT XANH ---
+        function openNewItemForm() {
+            formMode = "MANUAL"; currentScannedCode = ""; 
+            currentScreen = "FORM"; previousScreen = "LIST"; // Nhớ lưu vết để bấm ĐÓNG thì quay về list
+            
+            inventorySection.style.display = "none"; inputForm.style.display = "block"; 
+            
+            document.getElementById('group-search').style.display = "none"; 
+            document.getElementById('sp-qty').innerText = "HÀNG MỚI TINH";
+            
+            currentFormState = "NEW_INFO"; updateHeader('FORM');
+            newItemSection.style.display = "block"; transDetails.style.display = "none";
+            
+            document.getElementById('prod-name').value = ""; document.getElementById('prod-name').disabled = false;
+            document.getElementById('prod-category').parentElement.style.display = "block";
+            
+            transTypeSelect.value = (currentListMode === "STOCK") ? "COUNT" : "IN";
+            toggleFormLogic(); 
         }
 
         function openScanner() {
@@ -360,7 +386,7 @@
 
         function jumpToManualFromInv(maSP, tenSP, qty, mode) {
             formMode = "MANUAL"; currentScannedCode = ""; 
-            currentScreen = "FORM"; previousScreen = "LIST"; // ĐÁNH DẤU LÀ TỪ LIST ĐI VÀO
+            currentScreen = "FORM"; previousScreen = "LIST"; 
             
             inventorySection.style.display = "none"; inputForm.style.display = "block"; 
             currentFormState = "TRANS_INFO"; updateHeader('FORM');
@@ -384,12 +410,16 @@
                 prodName = pNameInput.value;
                 if (!pNameInput.disabled) { category = document.getElementById('prod-category').value; }
             } else { 
-                let val = manualProdInput.value;
-                if (!val.trim()) { alert("Cô chú chưa chọn món nào!"); return; }
-                if (val.includes(" - ")) {
-                    maSP = val.split(" - ")[0]; prodName = val.split(" - ")[1];
-                } else {
+                if (document.getElementById('group-search').style.display === "none") {
                     maSP = ""; prodName = document.getElementById('prod-name').value; category = document.getElementById('prod-category').value;
+                } else {
+                    let val = manualProdInput.value;
+                    if (!val.trim()) { alert("Cô chú chưa chọn món nào!"); return; }
+                    if (val.includes(" - ")) {
+                        maSP = val.split(" - ")[0]; prodName = val.split(" - ")[1];
+                    } else {
+                        maSP = ""; prodName = document.getElementById('prod-name').value; category = document.getElementById('prod-category').value;
+                    }
                 }
             }
 
@@ -410,7 +440,7 @@
             }).then(res => res.json()).then(data => {
                 if(data.status === 'success') { showStatus(data.message, "success"); fetchDataInit(); } 
                 else { showStatus(`Lỗi: ${data.message}`, "error"); }
-                setTimeout(goBack, 3000); // LƯU XONG CŨNG QUAY VỀ LIST NẾU TỪ LIST VÀO
+                setTimeout(goBack, 3000); 
             }).catch(e => { showStatus("Lỗi kết nối!", "error"); setTimeout(goBack, 3000); });
         }
 
