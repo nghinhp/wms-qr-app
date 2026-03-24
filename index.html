@@ -3,169 +3,110 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản Lý Kho Hiện Đại</title>
+    <title>Quản Lý Kho Chuyên Nghiệp</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
-        /* FONT VÀ NỀN TỐI (DARK MODE) */
-        * { font-family: Arial, "Segoe UI", sans-serif; box-sizing: border-box; }
-        body { 
-            background: #111827; /* Màu nền tối xanh thẫm */
-            margin: 0; padding: 0; color: #f8fafc; 
-        }
-        
-        .container { 
-            max-width: 600px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; 
-            background: #0f172a;
-        }
+        /* ÉP FONT TOÀN HỆ THỐNG */
+        * { font-family: Arial, "Segoe UI", sans-serif; box-sizing: border-box;}
+        body { background-color: #f4f7f6; margin: 0; padding: 5px; color: #111; }
+        .container { background: white; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto; position: relative; min-height: 96vh; display: flex; flex-direction: column; overflow: hidden; border: 1px solid #ddd;}
 
-        /* THANH ĐIỀU HƯỚNG TRÊN CÙNG (TOP BAR) - TỐI GIẢN */
-        .top-bar { 
-            position: sticky; top: 0; background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(10px);
-            display: flex; align-items: center; justify-content: center; padding: 15px 20px; 
-            z-index: 1000; border-bottom: 1px solid rgba(255,255,255,0.05); min-height: 60px;
-        }
-        .top-title { font-size: 20px; font-weight: bold; color: #f8fafc; text-align: center; width: 100%; margin: 0; letter-spacing: 1px;}
+        /* THANH HEADER ĐÃ ĐƯỢC CHIA LẠI THEO BẢN VẼ */
+        .top-bar { position: sticky; top: 0; background-color: #fff; display: flex; flex-direction: column; z-index: 1000; border-bottom: 1px solid #ddd; }
         
-        .top-btn { position: absolute; padding: 8px 15px; font-size: 14px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; display: none; z-index: 1001; text-transform: uppercase;}
-        .btn-back { left: 15px; background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid #ef4444;} 
-        .btn-save { right: 15px; background: rgba(59, 130, 246, 0.2); color: #93c5fd; border: 1px solid #3b82f6;}
-        .btn-new-item { right: 15px; background: rgba(34, 197, 94, 0.2); color: #86efac; border: 1px solid #22c55e;} 
-        .btn-reload { left: 50%; transform: translateX(-50%); background: transparent; color: #94a3b8; border: 1px solid #475569; font-size: 14px;} 
+        /* Dòng 1: Tiêu đề Header */
+        .header-title-row { display: flex; justify-content: center; align-items: center; padding: 12px 10px; border-bottom: 1px solid #eee; min-height: 50px;}
+        .top-title { font-size: 20px; font-weight: bold; color: #000; text-align: center; margin: 0; text-transform: uppercase;}
+        
+        /* Dòng 2: 3 Nút Bấm chia đều */
+        .header-btn-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; gap: 10px;}
+        .top-btn { flex: 1; padding: 10px; font-size: 16px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; color: white; display: none; text-align: center;}
+        
+        .btn-back { background-color: #d32f2f; } /* Đỏ */
+        .btn-reload { background-color: #6200ea; } /* Tím Xanh */
+        .btn-new-item { background-color: #008000; } /* Xanh Lá */
+        .btn-save { background-color: #0056b3; } /* Xanh Dương Đậm */
 
-        .main-content { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; }
+        /* Dòng 3: Date Filter nằm trên cùng trong view List */
+        .date-filter-box { display: none; padding: 0 10px 10px 10px; width: 100%;}
+        .date-filter-box input { width: 100%; border: 1px solid #a5b4fc; color: #1e3a8a; font-weight: bold; text-align: center; font-size: 18px; background: #eff6ff; padding: 12px; border-radius: 8px;}
+
+        .main-content { padding: 15px; flex-grow: 1; display: flex; flex-direction: column; }
         
         /* MENU CHÍNH */
-        .menu-btn { 
-            display: flex; align-items: center; justify-content: center; width: 100%; padding: 20px; margin-bottom: 15px; 
-            font-size: 18px; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; color: white; 
-            background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01));
-            border: 1px solid rgba(255,255,255,0.1);
-            transition: all 0.3s ease;
-        }
-        .menu-btn:active { transform: scale(0.98); }
-        .menu-btn span { margin-right: 15px; font-size: 24px; } 
+        .menu-btn { display: flex; align-items: center; justify-content: center; width: 100%; padding: 22px; margin-bottom: 15px; font-size: 20px; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; color: #003366; background-color: #e6f0ff; border: 1px solid #b3d1ff;}
         
-        .btn-menu-scan { border-left: 4px solid #3b82f6; }
-        .btn-menu-manual { border-left: 4px solid #f59e0b; }
-        .btn-menu-view { border-left: 4px solid #22c55e; }
-        .btn-menu-stock { border-left: 4px solid #a855f7; } 
-
         #scanner-section, #input-form, #inventory-section { display: none; flex-direction: column; flex-grow: 1;}
-        #reader { width: 100%; border-radius: 12px; overflow: hidden; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1); }
+        #reader { width: 100%; border-radius: 10px; border: 3px solid #0056b3; overflow: hidden; margin-bottom: 20px; }
         
-        /* ĐIỀU KHIỂN DANH SÁCH (NGÀY, TÌM KIẾM, FILTER) */
-        .inventory-controls { position: sticky; top: 60px; background: #0f172a; padding: 10px 0; z-index: 999; margin-bottom: 15px;}
-        
-        .date-filter-box { margin-bottom: 15px; }
-        .date-filter-box input { 
-            width: 100%; border: 1px solid rgba(59, 130, 246, 0.5); color: #93c5fd; font-weight: bold; 
-            text-align: center; font-size: 18px; background: rgba(59, 130, 246, 0.1); padding: 12px; border-radius: 8px;
-        }
-        
-        .category-scroll { display: flex; overflow-x: auto; gap: 10px; padding-bottom: 10px; margin-bottom: 10px; -webkit-overflow-scrolling: touch;}
-        .category-scroll::-webkit-scrollbar { display: none; } 
-        .cat-chip { 
-            padding: 8px 16px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); 
-            border-radius: 20px; font-size: 14px; font-weight: bold; color: #cbd5e1; cursor: pointer; white-space: nowrap;
-        }
-        .cat-chip.active { background: rgba(34, 197, 94, 0.2); color: #4ade80; border-color: #22c55e;}
-
-        .search-box input { 
-            width: 100%; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); 
-            padding: 12px 15px; font-size: 16px; color: white; border-radius: 8px;
-        }
-        .search-box input::placeholder { color: #64748b; }
-        
-        #inventory-list { flex-grow: 1; overflow-y: auto; padding-bottom: 20px; display: grid; gap: 15px;}
-        
-        /* GIAO DIỆN THẺ SẢN PHẨM MỚI (NEON/GLASS) */
-        .inv-item { 
-            background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0.2) 100%);
-            border: 1px solid rgba(255,255,255,0.05);
-            border-radius: 16px; padding: 0; text-align: left; cursor: pointer; 
-            position: relative; overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-        
-        /* Thẻ có hàng (Chốt) */
-        .inv-item.status-locked { border-color: rgba(34, 197, 94, 0.3); }
-        .inv-item.status-locked::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: #22c55e; }
-        
-        /* Thẻ chưa chốt (Dự kiến) */
-        .inv-item.status-pending { border-color: rgba(245, 158, 11, 0.3); }
-        .inv-item.status-pending::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: #f59e0b; }
-
-        .inv-card-inner { padding: 15px 20px; }
-        .inv-name { font-weight: bold; color: #f8fafc; font-size: 18px; margin-bottom: 12px; line-height: 1.3;}
-        
-        .inv-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;}
-        .stat-box { background: rgba(0,0,0,0.3); padding: 8px; border-radius: 6px; text-align: center;}
-        .stat-label { font-size: 11px; color: #94a3b8; text-transform: uppercase; margin-bottom: 4px; display: block;}
-        .stat-value { font-size: 16px; font-weight: bold; color: #e2e8f0; }
-        
-        .inv-status-bar { 
-            padding: 10px 20px; background: rgba(0,0,0,0.4); 
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .status-text { font-size: 12px; text-transform: uppercase; letter-spacing: 1px;}
-        .status-qty { font-size: 20px; font-weight: bold; }
-        
-        .status-locked .status-text, .status-locked .status-qty { color: #4ade80; }
-        .status-pending .status-text, .status-pending .status-qty { color: #fbbf24; }
-
-
-        /* FORM NHẬP LIỆU BÊN TRONG */
+        .qty-info { font-size: 22px; font-weight: bold; color: #d10000; margin-bottom: 20px; text-align: center; background: #ffe6e6; padding: 15px; border-radius: 10px; line-height: 1.4;}
         .form-group { margin-bottom: 20px; text-align: left;}
-        label { font-weight: bold; font-size: 15px; color: #cbd5e1; display: block; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;}
-        input, select { 
-            width: 100%; padding: 15px; font-size: 16px; border: 1px solid rgba(255,255,255,0.1); 
-            border-radius: 8px; background: rgba(0,0,0,0.2); color: white;
-        }
-        input:focus, select:focus { border-color: #3b82f6; outline: none; background: rgba(0,0,0,0.4);}
-        input:disabled { background: rgba(255,255,255,0.02); color: #64748b; }
+        label { font-weight: bold; font-size: 17px; color: #111; display: block; margin-bottom: 8px; }
+        input, select { width: 100%; padding: 15px; font-size: 18px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; background-color: #fff;}
+        input:focus, select:focus { border-color: #0056b3; outline: none; background-color: #f0f8ff;}
+        input:disabled { background-color: #e0e0e0; color: #555; }
         
-        .qty-info-header { 
-            text-align: center; margin-bottom: 25px; padding: 20px; border-radius: 12px;
-            background: linear-gradient(145deg, rgba(34, 197, 94, 0.1), rgba(0,0,0,0));
-            border: 1px solid rgba(34, 197, 94, 0.2);
-        }
-        .qty-info-title { font-size: 18px; color: #f8fafc; margin: 0 0 10px 0; font-weight: bold;}
-        .qty-info-numbers { font-size: 15px; color: #94a3b8; }
-        .qty-info-numbers strong { font-size: 24px; color: #4ade80; display: block; margin-top: 5px;}
+        .btn-confirm-new { width: 100%; padding: 15px; background-color: #0056b3; color: white; font-weight: bold; font-size: 18px; border: none; border-radius: 8px; cursor: pointer; margin-top: 15px; }
 
-        /* Bảng KYC */
-        #new-item-section { padding: 20px; background: rgba(245, 158, 11, 0.05); border-radius: 12px; margin-bottom: 25px; border: 1px solid rgba(245, 158, 11, 0.2); }
-        #dynamic-attributes-container { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; margin-bottom: 15px;}
-        .kyc-label { font-size: 14px; color: #93c5fd; margin-bottom: 8px; font-weight: normal; text-transform: none;}
-        .kyc-select { margin-bottom: 15px; background: rgba(255,255,255,0.05);}
-        .kyc-vendor-box { padding: 15px; background: rgba(34, 197, 94, 0.05); border-radius: 8px; margin-bottom: 15px;}
+        #status { padding: 15px; border-radius: 8px; font-weight: bold; font-size: 16px; margin-top: auto; text-align: center; display: none; line-height: 1.4;}
+        .success { background-color: #ccffcc; color: #006600; display: block !important;}
+        .error { background-color: #ffcccc; color: #cc0000; display: block !important;}
+        .loading { background-color: #e6f2ff; color: #003366; display: block !important;}
+
+        /* BỘ LỌC TỒN KHO & SCROLLBAR NẰM DƯỚI DATE */
+        .category-scroll { display: flex; overflow-x: auto; gap: 10px; padding-bottom: 12px; white-space: nowrap; margin-bottom: 15px;}
+        .category-scroll::-webkit-scrollbar { height: 6px; } 
+        .category-scroll::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 5px; }
+        .category-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 5px; }
         
-        .btn-confirm-new { width: 100%; padding: 15px; background: #f59e0b; color: #000; font-weight: bold; font-size: 16px; border: none; border-radius: 8px; cursor: pointer; margin-top: 10px; text-transform: uppercase; letter-spacing: 1px;}
+        .cat-chip { padding: 10px 18px; background-color: #e2e8f0; border: none; border-radius: 25px; font-size: 15px; font-weight: bold; color: #333; cursor: pointer;}
+        .cat-chip.active { background-color: #008000; color: white;}
 
-        #status { padding: 15px; border-radius: 8px; font-weight: bold; font-size: 16px; margin-top: auto; text-align: center; display: none;}
-        .success { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid #22c55e; display: block !important;}
-        .error { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid #ef4444; display: block !important;}
-        .loading { background: rgba(59, 130, 246, 0.1); color: #93c5fd; display: block !important;}
+        .search-box { margin-bottom: 15px; }
+        .search-box input { border: 2px solid #4ade80; background-color: #f0fdf4; padding: 12px; font-size: 16px;}
+        
+        #inventory-list { flex-grow: 1; overflow-y: auto;}
+        
+        /* SẢN PHẨM MÀU ĐEN CHUẨN */
+        .inv-item { padding: 15px 10px; border-bottom: 1px solid #ddd; text-align: left; cursor: pointer;}
+        .inv-item:active { background-color: #f1f5f9; } 
+        .inv-name { font-weight: bold; color: #111; font-size: 18px; margin-bottom: 8px; word-wrap: break-word; line-height: 1.3;}
+        .inv-row { display: flex; justify-content: space-between; font-size: 14px; color: #666; align-items: baseline;}
+        .inv-status { font-size: 18px; font-weight: bold; }
 
+        /* Vùng KYC */
+        #dynamic-attributes-container { background: #e6f7ff; padding: 15px; border-radius: 8px; margin-bottom: 15px; display: none; border: 1px dashed #91d5ff;}
+        .kyc-label { font-size: 15px; color: #003366; margin-bottom: 5px; font-weight: bold;}
+        .kyc-select { padding: 12px; font-size: 16px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #91d5ff; width: 100%; background: #fff;}
+        .kyc-vendor-box { padding: 15px; background: #f0fdf4; border-radius: 8px; margin-bottom: 15px; border: 1px dashed #bbf7d0; display: none;}
     </style>
 </head>
 <body>
 
     <div class="container">
         <div class="top-bar">
-            <button id="top-btn-back" class="top-btn btn-back" onclick="goBack()">Đóng</button>
-            <button id="top-btn-reload" class="top-btn btn-reload" onclick="fetchDataInit()">↻ Tải Lại</button>
-            <div id="top-title" class="top-title">WMS MASTER</div>
-            <button id="top-btn-new" class="top-btn btn-new-item" onclick="openNewItemForm()">Tạo Mã</button>
-            <button id="top-btn-save" class="top-btn btn-save" onclick="submitUpdate()">Lưu</button>
+            <div class="header-title-row">
+                <div id="top-title" class="top-title">MENU</div>
+            </div>
+            
+            <div class="header-btn-row" id="header-buttons" style="display:none;">
+                <button id="top-btn-back" class="top-btn btn-back" onclick="goBack()">ĐÓNG</button>
+                <button id="top-btn-reload" class="top-btn btn-reload" onclick="fetchDataInit()">TẢI LẠI</button>
+                <button id="top-btn-new" class="top-btn btn-new-item" onclick="openNewItemForm()">TẠO MÃ</button>
+                <button id="top-btn-save" class="top-btn btn-save" onclick="submitUpdate()">LƯU</button>
+            </div>
+
+            <div class="date-filter-box" id="header-date-filter">
+                <input type="date" id="list-date-filter" onchange="fetchInventoryForDate()">
+            </div>
         </div>
 
         <div class="main-content">
             <div id="main-menu">
-                <button class="menu-btn btn-menu-scan" onclick="openScanner()"><span>📷</span>Quét Mã Vạch</button>
-                <button class="menu-btn btn-menu-manual" onclick="openManual()"><span>✍️</span>Ghi Sổ Thủ Công</button>
-                <button class="menu-btn btn-menu-view" onclick="openInventory('VIEW')"><span>📊</span>Báo Cáo Tồn Kho</button>
-                <button class="menu-btn btn-menu-stock" onclick="openInventory('STOCK')"><span>📝</span>Kiểm Kê Cuối Ngày</button>
+                <button class="menu-btn" onclick="openScanner()">QUÉT MÃ VẠCH</button>
+                <button class="menu-btn" onclick="openManual()">GHI SỔ THỦ CÔNG</button>
+                <button class="menu-btn" onclick="openInventory('VIEW')">TỒN KHO</button>
+                <button class="menu-btn" onclick="openInventory('STOCK')">KIỂM KÊ</button>
             </div>
 
             <div id="scanner-section">
@@ -173,66 +114,59 @@
             </div>
 
             <div id="inventory-section">
-                <div class="inventory-controls">
-                    <div class="date-filter-box">
-                        <input type="date" id="list-date-filter" onchange="fetchInventoryForDate()">
-                    </div>
-                    <div class="category-scroll" id="cat-container"></div>
-                    <div class="search-box">
-                        <input type="text" id="inv-search" placeholder="🔍 Nhập từ khóa tìm kiếm..." oninput="applyFilters()">
-                    </div>
+                <div class="category-scroll" id="cat-container"></div>
+                <div class="search-box">
+                    <input type="text" id="inv-search" placeholder="🔍 Gõ tên sản phẩm để tìm nhanh..." oninput="applyFilters()">
                 </div>
+                <p style="text-align: center; color: #888; font-size: 13px; font-style: italic; margin-top: 0;">(Chạm vào món hàng bên dưới để Kiểm kho)</p>
                 <div id="inventory-list"></div>
             </div>
 
             <div id="input-form">
+                <div class="qty-info" id="sp-qty" style="display:none;"></div>
                 
                 <div class="form-group" id="group-search">
-                    <label>Tìm & Chọn Hàng Hóa:</label>
-                    <input type="text" id="manual-prod" list="prod-datalist" placeholder="Gõ tên..." onchange="onManualSelect()">
+                    <label>Bấm vào đây để chọn món hàng:</label>
+                    <input type="text" id="manual-prod" list="prod-datalist" placeholder="Ví dụ: Bánh Tráng..." onchange="onManualSelect()">
                     <datalist id="prod-datalist"></datalist>
                 </div>
 
-                <div id="new-item-section" style="display:none;">
-                    <p style="color: #fbbf24; font-weight:bold; margin-top:0; text-align:center; font-size:16px;">[ HÀNG MỚI CHƯA CÓ TRONG KHO ]</p>
+                <div id="new-item-section" style="display:none; padding: 15px; background: #fff5e6; border-radius: 12px; margin-bottom: 20px; border: 2px dashed #ff9900;">
+                    <p style="color: #d97706; font-weight:bold; margin-top:0; text-align:center; font-size:16px;">✨ CHUẨN HÓA MÃ HÀNG MỚI ✨</p>
                     
-                    <div class="form-group">
-                        <label>Nhóm Hàng:</label>
-                        <select id="prod-category" onchange="handleCategoryChange(this)"></select>
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label>1. Chọn Nhóm Hàng trước:</label>
+                        <select id="prod-category" onchange="handleCategoryChange(this)" style="background-color: #fff9e6; border-color: #ff9900;"></select>
                     </div>
                     <div id="dynamic-attributes-container"></div>
                     <div id="kyc-vendor-box" class="kyc-vendor-box">
-                        <label class="kyc-label">- Nhà Cung Cấp:</label>
-                        <select id="kyc-vendor" class="kyc-select" onchange="handleDropdownAddNew(this)"></select>
+                        <label class="kyc-label" style="color: #166534;">- Nhà Cung Cấp (Tùy chọn):</label>
+                        <select id="kyc-vendor" class="kyc-select" style="border-color:#bbf7d0;" onchange="handleDropdownAddNew(this)"></select>
                     </div>
 
                     <div class="form-group">
-                        <label>Tên Sản Phẩm (Hệ thống tự tạo):</label>
-                        <input type="text" id="prod-name" placeholder="..." style="color: #4ade80;">
+                        <label style="color: #008000;">Tên chuẩn sẽ được ghi vào sổ:</label>
+                        <input type="text" id="prod-name" placeholder="Máy sẽ tự điền tên vào đây..." style="border: 2px solid #008000; background: #f0fff0; margin-top: 5px;">
                     </div>
-                    <button type="button" class="btn-confirm-new" onclick="confirmNewItemInfo()">Xác Nhận Tạo Mã</button>
+                    <button type="button" class="btn-confirm-new" onclick="confirmNewItemInfo()">Đã ghép xong Tên - Điền số lượng</button>
                 </div>
                 
                 <div id="transaction-details" style="display:none;">
-                    
-                    <div class="qty-info-header" id="sp-qty-container">
-                        </div>
-
                     <div class="form-group">
-                        <label>Loại Giao Dịch:</label>
-                        <select id="trans-type" onchange="toggleFormLogic()">
-                            <option value="COUNT" selected>Kiểm Kê (Chốt Tồn)</option>
-                            <option value="IN">Nhập Kho (Cộng Thêm)</option>
+                        <label>Hôm nay cô chú muốn làm gì?</label>
+                        <select id="trans-type" onchange="toggleFormLogic()" style="background-color: #e6f7ff; border-color: #0056b3; font-weight: bold; color: #0056b3;">
+                            <option value="COUNT" selected>KIỂM KÊ (Chốt số trên quầy)</option>
+                            <option value="IN">NHẬP HÀNG TỚI (Cộng thêm vào)</option>
                         </select>
                     </div>
 
                     <div class="form-group">
-                        <label id="label-amount" style="color: #fbbf24;">Số Lượng Đếm Được:</label>
-                        <input type="number" id="input-amount" pattern="\d*" placeholder="0" style="font-size: 32px; font-weight: bold; text-align: center; color: #fbbf24;">
+                        <label id="label-amount" style="color: #d10000; text-transform: uppercase;">Thực tế trên kệ đang có mấy cái?</label>
+                        <input type="number" id="input-amount" pattern="\d*" placeholder="Gõ số lượng..." style="font-size: 24px; font-weight: bold; color: #d10000;">
                     </div>
 
                     <div class="form-group" id="group-obj" style="display:none;">
-                        <label>Đối Tượng / Nhà Cung Cấp:</label>
+                        <label>Xe của ai giao tới?</label>
                         <select id="obj-select" onchange="handleDropdownAddNew(this)"></select>
                     </div>
 
@@ -248,7 +182,7 @@
     </div>
 
     <script>
-        // DÁN LINK API CỦA BÁC VÀO ĐÂY
+        // DÁN LẠI LINK API CỦA BẠN VÀO ĐÂY:
         const API_URL = "https://script.google.com/macros/s/AKfycbxZi7yFbogjlAfeRKAUkVXKnkYYli0MmByKCpVSNwuK-9_CWLHBijH8fF5trnmIX1yW0A/exec";
         
         let dynamicKycConfig = {}; 
@@ -259,7 +193,11 @@
         const inputForm = document.getElementById('input-form');
         const statusDiv = document.getElementById('status');
         
+        // Header Elements
         const topTitle = document.getElementById('top-title');
+        const headerBtnRow = document.getElementById('header-buttons');
+        const headerDateFilter = document.getElementById('header-date-filter');
+        
         const btnHeadBack = document.getElementById('top-btn-back');
         const btnHeadReload = document.getElementById('top-btn-reload');
         const btnHeadSave = document.getElementById('top-btn-save');
@@ -289,7 +227,7 @@
         };
 
         function fetchDataInit() {
-            showStatus("Đang tải dữ liệu...", "loading");
+            showStatus("Đang tải dữ liệu từ kho...", "loading");
             fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'init' }) })
             .then(res => res.json()).then(data => {
                 if(data.status === 'success') {
@@ -324,33 +262,44 @@
                 scrollContainer.innerHTML += `<button class="cat-chip" onclick="filterCategory('${cat}', this)">${cat}</button>`;
             });
             let optKhac = document.createElement('option'); optKhac.value = "KHÁC"; optKhac.text = "KHÁC"; catSelect.appendChild(optKhac);
-            let optAddNew = document.createElement('option'); optAddNew.value = "ADD_NEW"; optAddNew.text = "+ Thêm nhóm mới"; catSelect.appendChild(optAddNew);
+            let optAddNew = document.createElement('option'); optAddNew.value = "ADD_NEW"; optAddNew.text = "+ Thêm nhóm mới..."; catSelect.appendChild(optAddNew);
         }
 
         function populateKYCVendor() {
             let vSelect = document.getElementById('kyc-vendor');
-            vSelect.innerHTML = '<option value="">-- Bỏ qua --</option>';
+            vSelect.innerHTML = '<option value="">-- Bấm chọn (Không bắt buộc) --</option>';
             cachedVendors.forEach(v => { let opt = document.createElement('option'); opt.value = v; opt.text = v; vSelect.appendChild(opt); });
-            let optNew = document.createElement('option'); optNew.value = "ADD_NEW"; optNew.text = "+ Thêm NCC mới"; vSelect.appendChild(optNew);
+            let optNew = document.createElement('option'); optNew.value = "ADD_NEW"; optNew.text = "+ Thêm NCC mới..."; vSelect.appendChild(optNew);
         }
 
         function getToday() { return new Date().toISOString().split('T')[0]; }
         function showStatus(msg, type) { statusDiv.innerHTML = msg; statusDiv.className = type; statusDiv.style.display="block";}
 
+        // HÀM QUẢN LÝ HIỂN THỊ HEADER RẤT CHẶT CHẼ
         function updateHeader(viewName) {
             btnHeadBack.style.display = "none"; btnHeadReload.style.display = "none"; 
-            btnHeadSave.style.display = "none"; btnHeadNew.style.display = "none"; topTitle.innerText = "";
+            btnHeadSave.style.display = "none"; btnHeadNew.style.display = "none";
+            headerBtnRow.style.display = "flex";
+            headerDateFilter.style.display = "none";
 
             if(viewName === 'MENU') {
-                topTitle.innerText = "WMS MASTER"; 
-                btnHeadReload.style.display = "block"; 
+                topTitle.innerText = "MENU"; 
+                headerBtnRow.style.display = "none"; // Menu ko có nút
             } else if(viewName === 'LIST') {
-                btnHeadBack.style.display = "block"; btnHeadNew.style.display = "block"; 
+                topTitle.innerText = currentListMode === 'STOCK' ? "KIỂM KÊ" : "TỒN KHO"; 
+                btnHeadBack.style.display = "block"; 
+                btnHeadReload.style.display = "block"; 
+                btnHeadNew.style.display = "block"; 
+                headerDateFilter.style.display = "block"; // Hiện thanh Ngày
             } else if(viewName === 'SCAN') {
-                topTitle.innerText = "QUÉT MÃ"; btnHeadBack.style.display = "block"; 
+                topTitle.innerText = "QUÉT MÃ"; 
+                btnHeadBack.style.display = "block"; 
             } else if(viewName === 'FORM') {
-                topTitle.innerText = "GHI SỔ"; btnHeadBack.style.display = "block";
-                if(currentFormState === "TRANS_INFO") btnHeadSave.style.display = "block"; 
+                topTitle.innerText = "GHI SỔ"; 
+                btnHeadBack.style.display = "block";
+                if(currentFormState === "TRANS_INFO") {
+                    btnHeadSave.style.display = "block"; 
+                }
             }
         }
 
@@ -369,7 +318,7 @@
 
         function handleDropdownAddNew(selectElement) {
             if (selectElement.value === "ADD_NEW") {
-                let newVal = prompt("Gõ thông tin mới:");
+                let newVal = prompt("Gõ thông tin mới vào đây nha:");
                 if (newVal && newVal.trim() !== "") {
                     let opt = document.createElement('option'); opt.value = newVal.trim(); opt.text = newVal.trim();
                     selectElement.insertBefore(opt, selectElement.lastElementChild); selectElement.value = newVal.trim();
@@ -382,7 +331,7 @@
 
         function handleCategoryChange(sel) {
             if(sel.value === "ADD_NEW") {
-                let newVal = prompt("Nhóm hàng mới:");
+                let newVal = prompt("Gõ tên Nhóm hàng mới vào đây:");
                 if(newVal && newVal.trim() !== "") {
                     let opt = document.createElement('option'); opt.value = newVal.trim().toUpperCase(); opt.text = newVal.trim().toUpperCase();
                     sel.insertBefore(opt, sel.lastElementChild); sel.value = opt.value;
@@ -395,13 +344,13 @@
             let type = transTypeSelect.value;
             objSelect.innerHTML = ""; 
             if(type === "IN") {
-                labelAmount.innerText = "SỐ LƯỢNG NHẬP VÀO:"; labelAmount.style.color = "#3b82f6"; document.getElementById('input-amount').style.color = "#3b82f6";
+                labelAmount.innerText = "NHẬP THÊM VÀO KHO MẤY CÁI?"; labelAmount.style.color = "#0056b3"; document.getElementById('input-amount').style.color = "#0056b3";
                 document.getElementById('group-obj').style.display = "block";
                 let opt = document.createElement('option'); opt.value = "Nhà cung cấp lẻ"; opt.text = "Nhà cung cấp lẻ"; objSelect.appendChild(opt);
                 cachedVendors.forEach(name => { let o = document.createElement('option'); o.value = name; o.text = name; objSelect.appendChild(o); });
                 let optNew = document.createElement('option'); optNew.value = "ADD_NEW"; optNew.text = "+ Thêm NCC mới..."; objSelect.appendChild(optNew);
             } else { 
-                labelAmount.innerText = "SỐ LƯỢNG ĐẾM TRÊN KỆ:"; labelAmount.style.color = "#f59e0b"; document.getElementById('input-amount').style.color = "#f59e0b";
+                labelAmount.innerText = "THỰC TẾ TRÊN KỆ ĐANG CÓ MẤY CÁI?"; labelAmount.style.color = "#d10000"; document.getElementById('input-amount').style.color = "#d10000";
                 document.getElementById('group-obj').style.display = "none"; 
             }
         }
@@ -414,10 +363,10 @@
 
             if(fields && fields.length > 0) {
                 container.style.display = "block";
-                let html = "";
+                let html = `<p style="margin-top:0; font-weight:bold; color:#0056b3; margin-bottom:15px; font-size:14px;">Mời cô chú chọn để máy ghép tên:</p>`;
                 fields.forEach(f => {
                     html += `<div style="margin-bottom:12px;"><label class="kyc-label">- ${f.label}</label><select class="kyc-select kyc-field-dynamic" onchange="handleDropdownAddNew(this)">`;
-                    f.opts.forEach(opt => { html += `<option value="${opt}">${opt === "" ? "-- Chọn --" : opt}</option>`; });
+                    f.opts.forEach(opt => { html += `<option value="${opt}">${opt === "" ? "-- Bấm chọn --" : opt}</option>`; });
                     html += `<option value="ADD_NEW">+ Thêm mới...</option></select></div>`;
                 });
                 container.innerHTML = html;
@@ -444,20 +393,16 @@
             if (finalName !== "") document.getElementById('prod-name').value = finalName;
         }
 
-        // HÀM RENDER INFO TRONG FORM ĐƯỢC CHỈNH THEO DARK MODE
         function renderDetailQuantityBox(tenSP, opening, inputs, ending) {
             currentExpectedQty = opening + inputs;
             let expected = currentExpectedQty;
-            let statusText = ending !== "" ? `ĐÃ CHỐT: ${ending}` : `DỰ KIẾN: ${expected}`;
-            let statusColor = ending !== "" ? "#4ade80" : "#fbbf24";
+            let statusText = ending !== "" ? `Tồn: ${ending}` : `Dự kiến: ${expected}`;
+            let statusColor = ending !== "" ? "#d10000" : "#008000";
             
-            document.getElementById('sp-qty-container').innerHTML = `
-                <p class="qty-info-title">${tenSP}</p>
-                <div class="qty-info-numbers">
-                    Tồn Đầu: ${opening} &nbsp;|&nbsp; Nhập: ${inputs}
-                    <strong style="color: ${statusColor}">${statusText}</strong>
-                </div>
-            `;
+            document.getElementById('sp-qty').style.display = "block";
+            document.getElementById('sp-qty').style.backgroundColor = "#fff";
+            document.getElementById('sp-qty').style.border = `2px solid ${statusColor}`;
+            document.getElementById('sp-qty').innerHTML = `Món: ${tenSP} | <span style="color:${statusColor}">${statusText}</span>`; 
         }
 
         function openNewItemForm() {
@@ -465,7 +410,11 @@
             inventorySection.style.display = "none"; inputForm.style.display = "block"; 
             document.getElementById('group-search').style.display = "none"; 
             
-            document.getElementById('sp-qty-container').innerHTML = `<p class="qty-info-title">HÀNG MỚI CHƯA GHI SỔ</p>`;
+            document.getElementById('sp-qty').style.display = "block";
+            document.getElementById('sp-qty').style.backgroundColor = "#ffe6e6";
+            document.getElementById('sp-qty').style.border = "none";
+            document.getElementById('sp-qty').innerHTML = "HÀNG NÀY MỚI TINH<br><span style='font-size:14px; font-weight:normal; color:#555;'>Chưa có lưu ở ngày đang chọn</span>";
+            
             currentFormState = "NEW_INFO"; updateHeader('FORM');
             currentExpectedQty = 0; 
             
@@ -497,7 +446,9 @@
                     
                     if(data.isNew) {
                         currentExpectedQty = 0;
-                        document.getElementById('sp-qty-container').innerHTML = `<p class="qty-info-title">HÀNG MỚI CHƯA GHI SỔ</p>`;
+                        document.getElementById('sp-qty').style.display = "block";
+                        document.getElementById('sp-qty').style.backgroundColor = "#ffe6e6";
+                        document.getElementById('sp-qty').innerHTML = "HÀNG NÀY MỚI TINH<br><span style='font-size:14px; font-weight:normal; color:#555;'>Chưa có sổ sách</span>";
                         currentFormState = "NEW_INFO"; updateHeader('FORM');
                         newItemSection.style.display = "block"; transDetails.style.display = "none";
                         let catSelect = document.getElementById('prod-category'); if(catSelect.options.length > 0) catSelect.selectedIndex = 0;
@@ -520,7 +471,7 @@
             currentFormState = "SELECT_PROD"; updateHeader('FORM');
             document.getElementById('group-search').style.display = "block";
             newItemSection.style.display = "none"; transDetails.style.display = "none";
-            manualProdInput.value = ""; document.getElementById('sp-qty-container').innerHTML = "";
+            manualProdInput.value = ""; document.getElementById('sp-qty').style.display = "none";
             statusDiv.style.display = "none";
         }
 
@@ -536,7 +487,9 @@
                 if(data.isNew) {
                     currentExpectedQty = 0;
                     currentFormState = "NEW_INFO"; updateHeader('FORM');
-                    document.getElementById('sp-qty-container').innerHTML = `<p class="qty-info-title">HÀNG MỚI CHƯA GHI SỔ</p>`;
+                    document.getElementById('sp-qty').style.display = "block";
+                    document.getElementById('sp-qty').style.backgroundColor = "#ffe6e6";
+                    document.getElementById('sp-qty').innerHTML = "HÀNG NÀY MỚI TINH";
                     newItemSection.style.display = "block"; transDetails.style.display = "none";
                     let catSelect = document.getElementById('prod-category'); if(catSelect.options.length > 0) catSelect.selectedIndex = 0;
                     document.getElementById('prod-name').disabled = false; document.getElementById('kyc-vendor').value = "";
@@ -551,7 +504,7 @@
         }
 
         function confirmNewItemInfo() {
-            if(!document.getElementById('prod-name').value.trim()) { alert("Vui lòng điền tên."); return; }
+            if(!document.getElementById('prod-name').value.trim()) { alert("Điền tên đã cô chú."); return; }
             currentFormState = "TRANS_INFO"; updateHeader('FORM');
             newItemSection.style.display = "none"; transDetails.style.display = "block";
             document.getElementById('input-amount').value = ""; transTypeSelect.value = (currentListMode === "STOCK") ? "COUNT" : "IN"; toggleFormLogic(); 
@@ -618,13 +571,12 @@
         function openInventory(mode) {
             currentListMode = mode; currentScreen = "LIST"; previousScreen = "MENU";
             mainMenu.style.display = "none"; inventorySection.style.display = "block"; updateHeader('LIST'); document.getElementById('inv-search').value = ""; 
-            document.getElementById('inv-search').placeholder = (mode === "STOCK") ? "🔍 Tìm nhanh để kiểm..." : "🔍 Tìm nhanh...";
             fetchInventoryForDate(); 
         }
 
         function fetchInventoryForDate() {
             let selectedDate = listDateFilter.value;
-            showStatus("Đang tải ngày " + selectedDate + "...", "loading");
+            showStatus("Đang tải dữ liệu...", "loading");
             let listDiv = document.getElementById('inventory-list'); listDiv.innerHTML = ""; 
 
             fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'get_inventory', trans_date: selectedDate }) })
@@ -642,48 +594,28 @@
             btnElement.classList.add('active'); applyFilters();
         }
 
-        // HÀM RENDER THẺ SẢN PHẨM CHUẨN DESIGN GLASSMORPHISM
         function applyFilters() {
             let searchText = document.getElementById('inv-search').value.toLowerCase();
             let listDiv = document.getElementById('inventory-list'); listDiv.innerHTML = ""; 
-            if(globalInventory.length === 0) { listDiv.innerHTML = "<p style='text-align:center; color:#64748b;'>Chưa có dữ liệu</p>"; return; }
+            if(globalInventory.length === 0) { listDiv.innerHTML = "<p style='text-align:center; color:#888;'>Chưa có dữ liệu</p>"; return; }
 
             globalInventory.forEach(item => {
                 let matchCat = (currentFilterCat === "TẤT CẢ" || item.category === currentFilterCat);
                 if (matchCat && item.tenSP.toLowerCase().includes(searchText)) {
+                    let div = document.createElement('div'); div.className = "inv-item";
                     
                     let expected = item.opening + item.inputsToday;
                     let isLocked = item.currentEnding !== "";
-                    
-                    // Style Class
-                    let statusClass = isLocked ? "status-locked" : "status-pending";
-                    let statusText = isLocked ? "Đã Chốt Tồn" : "Chưa Chốt";
-                    let displayQty = isLocked ? item.currentEnding : expected;
+                    let statusColor = isLocked ? "#008000" : "#0056b3";
+                    let statusText = isLocked ? `CHỐT: ${item.currentEnding}` : `DỰ KIẾN: ${expected}`;
 
-                    let div = document.createElement('div'); 
-                    div.className = `inv-item ${statusClass}`;
-                    
                     div.onclick = function() { jumpToManualFromInv(item.maSP, item.tenSP, item.opening, item.inputsToday, item.currentEnding, currentListMode); };
                     
                     div.innerHTML = `
-                        <div class="inv-card-inner">
-                            <div class="inv-name">${item.tenSP}</div>
-                            
-                            <div class="inv-stats-grid">
-                                <div class="stat-box">
-                                    <span class="stat-label">Tồn Đầu Ngày</span>
-                                    <span class="stat-value">${item.opening}</span>
-                                </div>
-                                <div class="stat-box">
-                                    <span class="stat-label">Nhập Thêm</span>
-                                    <span class="stat-value">${item.inputsToday}</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="inv-status-bar">
-                            <span class="status-text">${statusText}</span>
-                            <span class="status-qty">${displayQty}</span>
+                        <div class="inv-name">${item.tenSP}</div>
+                        <div class="inv-row">
+                            <span>Đầu: ${item.opening} &nbsp;|&nbsp; Nhập: ${item.inputsToday}</span>
+                            <span class="inv-status" style="color: ${statusColor};">${statusText}</span>
                         </div>
                     `;
                     listDiv.appendChild(div);
