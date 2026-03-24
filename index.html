@@ -6,7 +6,9 @@
     <title>Phần Mềm Kho Đơn Giản</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 5px; color: #111; }
+        /* ÉP FONT TOÀN HỆ THỐNG */
+        * { font-family: Arial, "Segoe UI", sans-serif; }
+        body { background-color: #f4f7f6; margin: 0; padding: 5px; color: #111; }
         .container { background: white; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto; position: relative; min-height: 96vh; display: flex; flex-direction: column; overflow: hidden; }
 
         .top-bar { position: sticky; top: 0; background-color: #fff; display: flex; align-items: center; justify-content: center; padding: 15px 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); z-index: 1000; border-bottom: 1px solid #ddd; min-height: 40px;}
@@ -16,9 +18,7 @@
         .btn-back { left: 10px; background-color: #d32f2f; color: white;} 
         .btn-save { right: 10px; background-color: #0056b3; color: white;}
         .btn-new-item { right: 10px; background-color: #008000; color: white;} 
-        
-        /* Nút tải lại ở giữa theo bản vẽ */
-        .btn-reload { left: 50%; transform: translateX(-50%); background-color: white; color: #3b82f6; border: 2px solid #3b82f6; font-size: 20px;} 
+        .btn-reload { left: 50%; transform: translateX(-50%); background-color: white; color: #3b82f6; border: 2px solid #3b82f6; font-size: 18px;} 
 
         .main-content { padding: 15px; flex-grow: 1; display: flex; flex-direction: column; }
         
@@ -48,7 +48,12 @@
         .loading { background-color: #e6f2ff; color: #003366; display: block !important;}
 
         .inventory-controls { position: sticky; top: 70px; background: white; padding: 10px 0 0 0; z-index: 999; border-bottom: 1px solid #eee; margin-bottom: 10px;}
-        .category-scroll { display: flex; overflow-x: auto; gap: 10px; padding-bottom: 10px; white-space: nowrap; -webkit-overflow-scrolling: touch;}
+        
+        /* THANH CHỌN NGÀY VỊ TRÍ VIP */
+        .date-filter-box { margin-bottom: 15px; }
+        .date-filter-box input { border: 2px solid #3b82f6; color: #0056b3; font-weight: bold; text-align: center; font-size: 20px; background: #eff6ff; padding: 15px; text-transform: uppercase;}
+        
+        .category-scroll { display: flex; overflow-x: auto; gap: 10px; padding-bottom: 10px; white-space: nowrap; -webkit-overflow-scrolling: touch; margin-bottom: 10px;}
         .category-scroll::-webkit-scrollbar { height: 8px; } 
         .category-scroll::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 5px; }
         .category-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 5px; }
@@ -58,16 +63,12 @@
         .search-box { margin-bottom: 10px; }
         .search-box input { border: 2px solid #008000; background-color: #f0fff0; padding: 12px; font-size: 18px;}
         
-        /* THANH CHỌN NGÀY THÁNG */
-        .date-filter-box { margin-bottom: 10px; }
-        .date-filter-box input { border: 2px solid #3b82f6; color: #0056b3; font-weight: bold; text-align: center; font-size: 20px; background: #eff6ff;}
-        
         #inventory-list { flex-grow: 1; overflow-y: auto;}
         
-        /* GIAO DIỆN THẺ SẢN PHẨM MỚI */
+        /* SẢN PHẨM MÀU ĐEN CHUẨN */
         .inv-item { padding: 15px 10px; border-bottom: 2px solid #ddd; text-align: left; cursor: pointer; border-radius: 8px;}
         .inv-item:active { background-color: #e0e0e0; } 
-        .inv-name { font-weight: bold; color: #d32f2f; font-size: 22px; margin-bottom: 8px; word-wrap: break-word;}
+        .inv-name { font-weight: bold; color: #111; font-size: 22px; margin-bottom: 8px; word-wrap: break-word;}
         .inv-row { display: flex; justify-content: space-between; font-size: 16px; color: #555; align-items: baseline;}
         .inv-status { font-size: 22px; font-weight: bold; }
 
@@ -102,12 +103,12 @@
 
             <div id="inventory-section">
                 <div class="inventory-controls">
+                    <div class="date-filter-box">
+                        <input type="date" id="list-date-filter" onchange="fetchInventoryForDate()">
+                    </div>
                     <div class="category-scroll" id="cat-container"></div>
                     <div class="search-box">
                         <input type="text" id="inv-search" placeholder="🔍 Gõ tên sản phẩm để tìm..." oninput="applyFilters()">
-                    </div>
-                    <div class="date-filter-box">
-                        <input type="date" id="list-date-filter" onchange="fetchInventoryForDate()">
                     </div>
                 </div>
                 <div id="inventory-list"></div>
@@ -174,7 +175,7 @@
     </div>
 
     <script>
-        // DÁN LẠI LINK API VÀO ĐÂY:
+        // DÁN LẠI LINK API CỦA BẠN VÀO ĐÂY:
         const API_URL = "https://script.google.com/macros/s/AKfycbxZi7yFbogjlAfeRKAUkVXKnkYYli0MmByKCpVSNwuK-9_CWLHBijH8fF5trnmIX1yW0A/exec";
         
         let dynamicKycConfig = {}; 
@@ -205,6 +206,9 @@
         let currentScreen = "MENU", previousScreen = "MENU"; 
         
         let cachedVendors = [], cachedProducts = [], globalInventory = [], currentFilterCat = "TẤT CẢ";
+        
+        // LƯU TRỮ SỐ DỰ KIẾN ĐỂ CHẶN LỖI
+        let currentExpectedQty = 0; 
 
         window.onload = function() {
             let today = new Date().toISOString().split('T')[0];
@@ -228,7 +232,6 @@
 
                     populateDynamicCategories(); populateKYCVendor(); 
                     
-                    // Nếu đang đứng ở màn hình Danh Sách mà bấm tải lại, thì gọi load danh sách luôn
                     if (currentScreen === "LIST") {
                         fetchInventoryForDate();
                     } else {
@@ -269,10 +272,9 @@
 
             if(viewName === 'MENU') {
                 topTitle.innerText = "QUẢN LÝ KHO TỔNG"; 
+                btnHeadReload.style.display = "block"; 
             } else if(viewName === 'LIST') {
-                btnHeadReload.style.display = "block"; // Tải lại ở giữa
-                btnHeadBack.style.display = "block"; 
-                btnHeadNew.style.display = "block"; 
+                btnHeadBack.style.display = "block"; btnHeadNew.style.display = "block"; 
             } else if(viewName === 'SCAN') {
                 topTitle.innerText = "QUÉT MÃ"; btnHeadBack.style.display = "block"; 
             } else if(viewName === 'FORM') {
@@ -371,21 +373,28 @@
             if (finalName !== "") document.getElementById('prod-name').value = finalName;
         }
 
+        function renderDetailQuantityBox(tenSP, opening, inputs, ending) {
+            currentExpectedQty = opening + inputs;
+            let expected = currentExpectedQty;
+            let statusText = ending !== "" ? `ĐÃ CHỐT: ${ending}` : `DỰ KIẾN: ${expected}`;
+            let statusColor = ending !== "" ? "#008000" : "#d97706";
+            document.getElementById('sp-qty').innerHTML = `${tenSP}<br><span style='font-size:18px; color:#555;'>Đầu: ${opening} | Nhập: ${inputs} => <strong style='color:${statusColor}'>${statusText}</strong></span>`; 
+        }
+
         function openNewItemForm() {
             formMode = "MANUAL"; currentScannedCode = ""; currentScreen = "FORM"; previousScreen = "LIST"; 
             inventorySection.style.display = "none"; inputForm.style.display = "block"; 
             document.getElementById('group-search').style.display = "none"; 
             document.getElementById('sp-qty').innerHTML = "HÀNG NÀY MỚI TINH<br><span style='font-size:16px; font-weight:normal; color:#555;'>Cô chú chưa có lưu ở ngày đang chọn</span>";
             currentFormState = "NEW_INFO"; updateHeader('FORM');
+            currentExpectedQty = 0; // Mới tinh thì dự kiến bằng 0
             
             newItemSection.style.display = "block"; transDetails.style.display = "none";
             let catSelect = document.getElementById('prod-category');
             if(catSelect.options.length > 0) catSelect.selectedIndex = 0;
             document.getElementById('prod-name').disabled = false; document.getElementById('kyc-vendor').value = ""; 
             
-            // Lấy ngày bên danh sách ném qua Form
             dateInput.value = listDateFilter.value;
-            
             renderKYCFields(); 
             transTypeSelect.value = (currentListMode === "STOCK") ? "COUNT" : "IN"; toggleFormLogic(); 
         }
@@ -407,6 +416,7 @@
                     currentScreen = "FORM"; previousScreen = "MENU"; document.getElementById('group-search').style.display = "none";
                     
                     if(data.isNew) {
+                        currentExpectedQty = 0;
                         document.getElementById('sp-qty').innerHTML = "HÀNG NÀY MỚI TINH<br><span style='font-size:16px; font-weight:normal; color:#555;'>Chưa có sổ sách</span>";
                         currentFormState = "NEW_INFO"; updateHeader('FORM');
                         newItemSection.style.display = "block"; transDetails.style.display = "none";
@@ -414,7 +424,7 @@
                         document.getElementById('prod-name').disabled = false; document.getElementById('kyc-vendor').value = "";
                         renderKYCFields(); 
                     } else {
-                        document.getElementById('sp-qty').innerHTML = `${data.tenSP}<br><span style='font-size:18px; color:#555;'>${data.currentQty}</span>`;
+                        renderDetailQuantityBox(data.tenSP, data.opening, data.inputsToday, data.currentEnding);
                         currentFormState = "TRANS_INFO"; updateHeader('FORM');
                         document.getElementById('prod-name').value = data.tenSP; 
                         newItemSection.style.display = "none"; transDetails.style.display = "block";
@@ -444,6 +454,7 @@
             .then(res => res.json()).then(data => {
                 statusDiv.style.display = "none";
                 if(data.isNew) {
+                    currentExpectedQty = 0;
                     currentFormState = "NEW_INFO"; updateHeader('FORM');
                     document.getElementById('sp-qty').innerHTML = "HÀNG NÀY MỚI TINH<br><span style='font-size:16px; font-weight:normal; color:#555;'>Máy chưa biết món này</span>";
                     newItemSection.style.display = "block"; transDetails.style.display = "none";
@@ -451,8 +462,8 @@
                     document.getElementById('prod-name').disabled = false; document.getElementById('kyc-vendor').value = "";
                     renderKYCFields(); document.getElementById('prod-name').value = val; 
                 } else {
+                    renderDetailQuantityBox(data.tenSP, data.opening, data.inputsToday, data.currentEnding);
                     currentFormState = "TRANS_INFO"; updateHeader('FORM');
-                    document.getElementById('sp-qty').innerHTML = `${data.tenSP}<br><span style='font-size:18px; color:#555;'>${data.currentQty}</span>`; 
                     newItemSection.style.display = "none"; transDetails.style.display = "block";
                     document.getElementById('input-amount').value = ""; transTypeSelect.value = "COUNT"; toggleFormLogic(); 
                 }
@@ -473,22 +484,27 @@
             newItemSection.style.display = "none"; transDetails.style.display = "block";
             
             manualProdInput.value = `${maSP} - ${tenSP}`; 
-            
-            // Render số chi tiết lên Form y như bản vẽ
-            let expected = opening + inputsToday;
-            let statusText = currentEnding !== "" ? `ĐÃ CHỐT: ${currentEnding}` : `DỰ KIẾN: ${expected}`;
-            document.getElementById('sp-qty').innerHTML = `${tenSP}<br><span style='font-size:18px; color:#555;'>Đầu: ${opening} | Nhập: ${inputsToday} => <strong style='color:${currentEnding !== "" ? "#008000" : "#d97706"}'>${statusText}</strong></span>`; 
+            renderDetailQuantityBox(tenSP, opening, inputsToday, currentEnding);
             
             document.getElementById('input-amount').value = ""; 
-            
-            // Đồng bộ ngày tháng từ Danh sách sang Form
             dateInput.value = listDateFilter.value;
-            
             transTypeSelect.value = (mode === "STOCK") ? "COUNT" : "IN"; toggleFormLogic(); statusDiv.style.display = "none";
         }
 
         function submitUpdate() {
             if(currentFormState !== "TRANS_INFO") return;
+            
+            // BỘ LỌC CẢNH BÁO CHỐT TỒN VƯỢT DỰ KIẾN (ÂM KHO)
+            let amount = Number(document.getElementById('input-amount').value);
+            let transType = transTypeSelect.value;
+            
+            if (transType === "COUNT" && amount > currentExpectedQty) {
+                alert(`⚠️ LỖI SỐ LIỆU!\n\nTồn dự kiến hiện tại chỉ có: ${currentExpectedQty} cái.\nThực tế cô chú đếm được tới: ${amount} cái.\n\n=> Nghĩa là có hàng mới giao tới nhưng chưa ghi sổ.\n\nCô chú vui lòng ĐÓNG, sau đó chọn "NHẬP HÀNG TỚI" để ghi nhận số hàng mới này trước khi kiểm kho nhé!`);
+                return;
+            }
+
+            if (amount === "" || isNaN(amount)) { alert("Chưa nhập Số lượng!"); return; }
+
             let prodName = "", maSP = "", category = "KHÁC";
 
             if (formMode === "SCAN") {
@@ -504,8 +520,7 @@
                 }
             }
 
-            let amount = document.getElementById('input-amount').value;
-            if (amount === "") { alert("Chưa nhập Số lượng!"); return; }
+            if (!prodName.trim()) { alert("Hàng mới, cô chú điền tên giùm con."); return; }
 
             showStatus(`Đang tính toán và ghi sổ...`, "loading");
             inputForm.style.display = "none"; btnHeadSave.style.display = "none"; 
@@ -514,8 +529,8 @@
                 method: 'POST', 
                 body: JSON.stringify({ 
                     action: 'update', maSP: maSP, prod_name: prodName, category: category, 
-                    amount: amount, trans_type: transTypeSelect.value, 
-                    trans_date: dateInput.value, obj_name: transTypeSelect.value === "IN" ? objSelect.value : "" 
+                    amount: amount, trans_type: transType, 
+                    trans_date: dateInput.value, obj_name: transType === "IN" ? objSelect.value : "" 
                 })
             }).then(res => res.json()).then(data => {
                 if(data.status === 'success') { showStatus(data.message, "success"); fetchDataInit(); } 
@@ -523,13 +538,11 @@
             }).catch(e => { showStatus("Lỗi kết nối!", "error"); setTimeout(goBack, 3000); });
         }
 
-        // --- CƠ CHẾ GỌI SỐ LIỆU THEO NGÀY ---
         function openInventory(mode) {
             currentListMode = mode; currentScreen = "LIST"; previousScreen = "MENU";
             mainMenu.style.display = "none"; inventorySection.style.display = "block"; updateHeader('LIST'); document.getElementById('inv-search').value = ""; 
-            
             document.getElementById('inv-search').placeholder = (mode === "STOCK") ? "🔍 Gõ tên món để KIỂM nhanh..." : "🔍 Gõ tên món để TÌM nhanh...";
-            fetchInventoryForDate(); // Gọi hàm load ngày
+            fetchInventoryForDate(); 
         }
 
         function fetchInventoryForDate() {
@@ -555,14 +568,13 @@
         function applyFilters() {
             let searchText = document.getElementById('inv-search').value.toLowerCase();
             let listDiv = document.getElementById('inventory-list'); listDiv.innerHTML = ""; 
-            if(globalInventory.length === 0) { listDiv.innerHTML = "<p style='text-align:center;'>Chưa có dữ liệu hôm nay</p>"; return; }
+            if(globalInventory.length === 0) { listDiv.innerHTML = "<p style='text-align:center;'>Chưa có dữ liệu</p>"; return; }
 
             globalInventory.forEach(item => {
                 let matchCat = (currentFilterCat === "TẤT CẢ" || item.category === currentFilterCat);
                 if (matchCat && item.tenSP.toLowerCase().includes(searchText)) {
                     let div = document.createElement('div'); div.className = "inv-item";
                     
-                    // Xây dựng giao diện thẻ 2 dòng chuẩn bản vẽ
                     let expected = item.opening + item.inputsToday;
                     let isLocked = item.currentEnding !== "";
                     let statusColor = isLocked ? "#008000" : "#d97706";
