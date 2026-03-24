@@ -381,14 +381,24 @@
             dateInput.value = listDateFilter.value; renderKYCFields(); transTypeSelect.value = (currentListMode === "STOCK") ? "COUNT" : "IN"; toggleFormLogic();
         }
 
-        function openScanner() {
+	function openScanner() {
             formMode = "SCAN"; currentScreen = "SCAN"; previousScreen = "MENU";
             mainMenu.style.display = "none"; scannerSection.style.display = "block"; updateHeader('SCAN');
+            
             if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
-            html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, onScanSuccess)
-                .catch(() => { showToast("❌ Không mở được camera.", "error"); setTimeout(goBack, 2000); });
-        }
+            
+            // ĐÃ SỬA: Đổi qrbox thành HÌNH CHỮ NHẬT để quét mã vạch trên bao bì
+            let config = { 
+                fps: 10, 
+                qrbox: { width: 280, height: 120 } 
+            };
 
+            html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess)
+                .catch(() => { 
+                    showToast("❌ Không mở được camera.", "error"); 
+                    setTimeout(goBack, 2000); 
+                });
+        }
         function onScanSuccess(decodedText) {
             if (isProcessing) return; isProcessing = true; currentScannedCode = decodedText;
             html5QrCode.stop().then(() => {
