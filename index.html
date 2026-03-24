@@ -13,8 +13,8 @@
         .top-title { font-size: 24px; font-weight: bold; color: #003366; text-align: center; width: 100%; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
         
         .top-btn { position: absolute; padding: 12px 18px; font-size: 18px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; color: white; display: none; z-index: 1001;}
-        .btn-back { left: 10px; background-color: #d32f2f; } /* Đỏ */
-        .btn-reload { left: 10px; background-color: #0056b3; } /* Xanh dương - Tải lại */
+        .btn-back { left: 10px; background-color: #d32f2f; } 
+        .btn-reload { left: 10px; background-color: #0056b3; } 
         .btn-save { right: 10px; background-color: #0056b3; }
         .btn-new-item { right: 10px; background-color: #008000; } 
 
@@ -63,7 +63,6 @@
         .inv-name { font-weight: bold; color: #111; font-size: 23px; flex-grow: 1; padding-right: 10px; word-wrap: break-word;}
         .inv-qty { font-weight: bold; color: #008000; font-size: 28px; white-space: nowrap;}
 
-        /* Bảng KYC chuẩn hóa nhập liệu */
         #dynamic-attributes-container { background: #e6f7ff; padding: 15px; border-radius: 8px; margin-bottom: 15px; display: none; border: 1px solid #91d5ff;}
         .kyc-label { font-size: 17px; color: #003366; margin-bottom: 5px; font-weight: bold;}
         .kyc-select { padding: 14px; font-size: 19px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #91d5ff; width: 100%; background: #fff;}
@@ -97,16 +96,7 @@
 
             <div id="inventory-section">
                 <div class="inventory-controls">
-                    <div class="category-scroll" id="cat-container">
-                        <button class="cat-chip active" onclick="filterCategory('TẤT CẢ', this)">TẤT CẢ</button>
-                        <button class="cat-chip" onclick="filterCategory('BÁNH', this)">BÁNH</button>
-                        <button class="cat-chip" onclick="filterCategory('KẸO', this)">KẸO</button>
-                        <button class="cat-chip" onclick="filterCategory('NƯỚC NGỌT', this)">NƯỚC NGỌT</button>
-                        <button class="cat-chip" onclick="filterCategory('NƯỚC SUỐI', this)">NƯỚC SUỐI</button>
-                        <button class="cat-chip" onclick="filterCategory('NƯỚC TRÀ', this)">NƯỚC TRÀ</button>
-                        <button class="cat-chip" onclick="filterCategory('KEM', this)">KEM</button>
-                        <button class="cat-chip" onclick="filterCategory('SỮA', this)">SỮA</button>
-                    </div>
+                    <div class="category-scroll" id="cat-container"></div>
                     <div class="search-box">
                         <input type="text" id="inv-search" placeholder="🔍 Gõ tên sản phẩm để tìm..." oninput="applyFilters()">
                     </div>
@@ -129,15 +119,6 @@
                     <div class="form-group" style="margin-bottom: 15px;">
                         <label>1. Chọn Nhóm Hàng trước:</label>
                         <select id="prod-category" onchange="handleCategoryChange(this)" style="background-color: #fff9e6; border-color: #ff9900;">
-                            <option value="BÁNH" selected>BÁNH</option>
-                            <option value="KẸO">KẸO</option>
-                            <option value="NƯỚC NGỌT">NƯỚC NGỌT</option>
-                            <option value="NƯỚC SUỐI">NƯỚC SUỐI</option>
-                            <option value="NƯỚC TRÀ">NƯỚC TRÀ</option>
-                            <option value="KEM">KEM</option>
-                            <option value="SỮA">SỮA</option>
-                            <option value="KHÁC">KHÁC</option>
-                            <option value="ADD_NEW" style="color:blue; font-weight:bold;">+ Thêm nhóm mới...</option>
                         </select>
                     </div>
 
@@ -145,8 +126,7 @@
 
                     <div id="kyc-vendor-box" class="kyc-vendor-box">
                         <label class="kyc-label" style="color: #166534;">- Nhà Cung Cấp (Tùy chọn):</label>
-                        <select id="kyc-vendor" class="kyc-select" style="border-color:#bbf7d0;" onchange="handleDropdownAddNew(this)">
-                            </select>
+                        <select id="kyc-vendor" class="kyc-select" style="border-color:#bbf7d0;" onchange="handleDropdownAddNew(this)"></select>
                     </div>
 
                     <div class="form-group">
@@ -189,31 +169,10 @@
     </div>
 
     <script>
-        // DÁN LẠI LINK API VÀO ĐÂY:
+        // DÁN LẠI LINK API CỦA BẠN VÀO ĐÂY:
         const API_URL = "https://script.google.com/macros/s/AKfycbxZi7yFbogjlAfeRKAUkVXKnkYYli0MmByKCpVSNwuK-9_CWLHBijH8fF5trnmIX1yW0A/exec";
         
-        // --- CẤU HÌNH TỪ ĐIỂN KYC SẢN PHẨM ---
-        const kycConfig = {
-            "BÁNH": [
-                { id: "kyc_loai", label: "Loại Bánh gì?", opts: ["", "Bánh Tráng", "Bánh Quy", "Bánh Snack", "Bánh Gấu", "Bánh Cuộn", "Bánh Xốp"] },
-                { id: "kyc_vi", label: "Vị / Nhân gì?", opts: ["", "Phô Mai", "Sa Tế", "Rong Biển", "Tự Nhiên", "Trứng Muối", "Dâu", "Sô-cô-la"] },
-                { id: "kyc_size", label: "Trọng lượng?", opts: ["", "20g", "50g", "100g", "150g", "Gói Lớn", "Hộp Nhỏ"] }
-            ],
-            "NƯỚC NGỌT": [
-                { id: "kyc_hieu", label: "Thương Hiệu:", opts: ["", "Pepsi", "Coca Cola", "7Up", "Mirinda", "Sting", "Redbull", "Bò Húc"] },
-                { id: "kyc_vi", label: "Hương Vị:", opts: ["", "Cam", "Xá Xị", "Dâu", "Trái Cây", "Không Đường"] },
-                { id: "kyc_size", label: "Đóng Gói:", opts: ["", "Lon 330ml", "Chai 390ml", "Chai 1.5L"] }
-            ],
-            "KEM": [
-                { id: "kyc_loai", label: "Phân Loại Kem:", opts: ["", "Kem Kool", "Kem Mochi", "Kem Bánh Gấu", "Kem Ốc Quế", "Kem Hộp", "Kem Que"] },
-                { id: "kyc_vi", label: "Hương Vị:", opts: ["", "Dâu", "Xoài", "Dứa", "Sầu Riêng", "Sô-cô-la", "Vani", "Đậu Xanh"] }
-            ],
-            "SỮA": [
-                { id: "kyc_hieu", label: "Thương Hiệu:", opts: ["", "Vinamilk", "TH True Milk", "Milo", "Fami", "Cô Gái Hà Lan"] },
-                { id: "kyc_vi", label: "Loại Sữa:", opts: ["", "Có Đường", "Ít Đường", "Không Đường", "Hương Dâu", "Sô-cô-la"] },
-                { id: "kyc_size", label: "Dung Tích:", opts: ["", "110ml", "180ml", "1 Lít"] }
-            ]
-        };
+        let dynamicKycConfig = {}; // Dữ liệu lấy từ Google Sheets
 
         const mainMenu = document.getElementById('main-menu');
         const scannerSection = document.getElementById('scanner-section');
@@ -247,19 +206,52 @@
         };
 
         function fetchDataInit() {
-            showStatus("Đang nạp máy móc...", "loading");
+            showStatus("Đang tải dữ liệu từ kho...", "loading");
             fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'init' }) })
             .then(res => res.json()).then(data => {
                 if(data.status === 'success') {
-                    cachedVendors = data.vendors; cachedProducts = data.products;
+                    cachedVendors = data.vendors; 
+                    cachedProducts = data.products;
+                    dynamicKycConfig = data.kycConfig || {}; // Lưu KYC lấy từ máy chủ
+
+                    // Đổ dữ liệu vào Ô Tìm Kiếm
                     let dl = document.getElementById('prod-datalist'); dl.innerHTML = "";
                     cachedProducts.forEach(p => {
                         let opt = document.createElement('option'); opt.value = `${p.maSP} - ${p.tenSP}`; dl.appendChild(opt);
                     });
-                    populateKYCVendor(); // Tự động đổ danh sách Vendor vào Khung ghép tên KYC
+
+                    // Đổ dữ liệu động vào Ô Nhóm Hàng & Thanh Scroll ngang
+                    populateDynamicCategories();
+
+                    // Đổ dữ liệu vào Khung ghép tên Nhà Cung Cấp
+                    populateKYCVendor(); 
+
                     statusDiv.style.display = "none";
                 }
             }).catch(e => showStatus("Mạng yếu, mở lại giùm con.", "error"));
+        }
+
+        // HÀM MỚI: TỰ ĐỘNG XÂY DỰNG DROPDOWN & SCROLL THEO DỮ LIỆU GOOGLE SHEETS
+        function populateDynamicCategories() {
+            let catSelect = document.getElementById('prod-category');
+            let scrollContainer = document.getElementById('cat-container');
+            
+            catSelect.innerHTML = "";
+            scrollContainer.innerHTML = `<button class="cat-chip active" onclick="filterCategory('TẤT CẢ', this)">TẤT CẢ</button>`;
+
+            let categories = Object.keys(dynamicKycConfig);
+            
+            categories.forEach(cat => {
+                // Thêm vào Select Box
+                let opt = document.createElement('option'); opt.value = cat; opt.text = cat;
+                catSelect.appendChild(opt);
+                // Thêm vào Scroll Ngang
+                scrollContainer.innerHTML += `<button class="cat-chip" onclick="filterCategory('${cat}', this)">${cat}</button>`;
+            });
+
+            // Gắn thêm KHÁC và ADD_NEW vào cuối
+            let optKhac = document.createElement('option'); optKhac.value = "KHÁC"; optKhac.text = "KHÁC"; catSelect.appendChild(optKhac);
+            let optAddNew = document.createElement('option'); optAddNew.value = "ADD_NEW"; optAddNew.text = "+ Thêm nhóm mới..."; optAddNew.style.color = "blue"; optAddNew.style.fontWeight = "bold"; catSelect.appendChild(optAddNew);
         }
 
         function populateKYCVendor() {
@@ -268,36 +260,27 @@
             cachedVendors.forEach(v => {
                 let opt = document.createElement('option'); opt.value = v; opt.text = v; vSelect.appendChild(opt);
             });
-            // Thêm nút + Thêm mới
             let optNew = document.createElement('option'); optNew.value = "ADD_NEW"; optNew.text = "+ Thêm nhà cung cấp mới..."; optNew.style.color = "blue"; optNew.style.fontWeight = "bold"; vSelect.appendChild(optNew);
         }
 
         function getToday() { return new Date().toISOString().split('T')[0]; }
         function showStatus(msg, type) { statusDiv.innerHTML = msg; statusDiv.className = type; statusDiv.style.display="block";}
 
-        // --- CẬP NHẬT HEADER (Có Nút Tải Lại) ---
         function updateHeader(viewName) {
-            btnHeadBack.style.display = "none"; 
-            btnHeadReload.style.display = "none"; 
-            btnHeadSave.style.display = "none"; 
-            btnHeadNew.style.display = "none";
+            btnHeadBack.style.display = "none"; btnHeadReload.style.display = "none"; 
+            btnHeadSave.style.display = "none"; btnHeadNew.style.display = "none";
 
             if(viewName === 'MENU') {
                 topTitle.innerText = "QUẢN LÝ KHO TỔNG"; 
-                btnHeadReload.style.display = "block"; // Nút TẢI LẠI hiện ở Menu
+                btnHeadReload.style.display = "block"; // Hiện Nút Tải Lại
             } else if(viewName === 'LIST') {
                 topTitle.innerText = ""; 
-                btnHeadBack.style.display = "block"; 
-                btnHeadNew.style.display = "block"; 
+                btnHeadBack.style.display = "block"; btnHeadNew.style.display = "block"; 
             } else if(viewName === 'SCAN') {
-                topTitle.innerText = "QUÉT MÃ";
-                btnHeadBack.style.display = "block"; 
+                topTitle.innerText = "QUÉT MÃ"; btnHeadBack.style.display = "block"; 
             } else if(viewName === 'FORM') {
-                topTitle.innerText = "GHI SỔ"; 
-                btnHeadBack.style.display = "block";
-                if(currentFormState === "TRANS_INFO") {
-                    btnHeadSave.style.display = "block"; 
-                }
+                topTitle.innerText = "GHI SỔ"; btnHeadBack.style.display = "block";
+                if(currentFormState === "TRANS_INFO") btnHeadSave.style.display = "block"; 
             }
         }
 
@@ -321,10 +304,10 @@
                 if (newVal && newVal.trim() !== "") {
                     let opt = document.createElement('option');
                     opt.value = newVal.trim(); opt.text = newVal.trim();
-                    selectElement.insertBefore(opt, selectElement.lastElementChild); // Chèn vào trước nút Add_New
+                    selectElement.insertBefore(opt, selectElement.lastElementChild);
                     selectElement.value = newVal.trim();
                 } else {
-                    selectElement.value = ""; // Hủy thì trả về rỗng
+                    selectElement.value = ""; 
                     if(selectElement.id === "obj-select") selectElement.value = "Nhà cung cấp lẻ";
                 }
             }
@@ -355,7 +338,6 @@
                 let opt = document.createElement('option'); opt.value = "Nhà cung cấp lẻ"; opt.text = "Nhà cung cấp lẻ"; objSelect.appendChild(opt);
                 cachedVendors.forEach(name => { let o = document.createElement('option'); o.value = name; o.text = name; objSelect.appendChild(o); });
                 
-                // Thêm nút Add_New cho form Nhập Kho
                 let optNew = document.createElement('option'); optNew.value = "ADD_NEW"; optNew.text = "+ Thêm nhà cung cấp mới..."; optNew.style.color = "blue"; optNew.style.fontWeight = "bold"; objSelect.appendChild(optNew);
             } else { 
                 labelAmount.innerText = "THỰC TẾ TRÊN KỆ ĐANG CÓ MẤY CÁI?"; labelAmount.style.color = "#d10000"; document.getElementById('input-amount').style.color = "#d10000";
@@ -363,13 +345,12 @@
             }
         }
 
-        // --- CƠ CHẾ RENDER CÂU HỎI KYC VÀ GHÉP TÊN ---
+        // --- CƠ CHẾ RENDER CÂU HỎI KYC ĐỌC TỪ GOOGLE SHEETS ---
         function renderKYCFields() {
             let cat = document.getElementById('prod-category').value;
             let container = document.getElementById('dynamic-attributes-container');
-            let fields = kycConfig[cat];
+            let fields = dynamicKycConfig[cat];
             
-            // Luôn hiện ô Nhà Cung Cấp khi ở form Tạo mới
             document.getElementById('kyc-vendor-box').style.display = "block";
 
             if(fields && fields.length > 0) {
@@ -406,7 +387,6 @@
                 });
                 baseName = nameParts.join(" ");
             } else {
-                // Nhóm KHÁC (Tự gõ)
                 let currentName = document.getElementById('prod-name').value;
                 if (currentName.includes(" - ")) { baseName = currentName.split(" - ")[0]; } 
                 else { baseName = currentName; }
@@ -415,7 +395,6 @@
             let vendor = document.getElementById('kyc-vendor').value;
             let finalName = baseName.trim();
             
-            // Ép thêm nhà cung cấp vào cuối tên
             if (finalName !== "" && vendor !== "" && vendor !== "ADD_NEW") {
                 finalName = finalName + " - " + vendor;
             }
@@ -433,12 +412,14 @@
             currentFormState = "NEW_INFO"; updateHeader('FORM');
             
             newItemSection.style.display = "block"; transDetails.style.display = "none";
-            document.getElementById('prod-category').value = "BÁNH"; 
+            // Kích hoạt select box đầu tiên (Mặc định thường là BÁNH)
+            let catSelect = document.getElementById('prod-category');
+            if(catSelect.options.length > 0) catSelect.selectedIndex = 0;
+            
             document.getElementById('prod-name').disabled = false;
-            document.getElementById('kyc-vendor').value = ""; // Reset nhà cung cấp
+            document.getElementById('kyc-vendor').value = ""; 
             
             renderKYCFields(); 
-
             transTypeSelect.value = (currentListMode === "STOCK") ? "COUNT" : "IN"; toggleFormLogic(); 
         }
 
@@ -462,7 +443,9 @@
                         document.getElementById('sp-qty').innerText = `MÓN NÀY MỚI TINH`;
                         currentFormState = "NEW_INFO"; updateHeader('FORM');
                         newItemSection.style.display = "block"; transDetails.style.display = "none";
-                        document.getElementById('prod-category').value = "BÁNH"; document.getElementById('prod-name').disabled = false;
+                        let catSelect = document.getElementById('prod-category');
+                        if(catSelect.options.length > 0) catSelect.selectedIndex = 0;
+                        document.getElementById('prod-name').disabled = false;
                         document.getElementById('kyc-vendor').value = "";
                         renderKYCFields(); 
                     } else {
@@ -499,7 +482,9 @@
                     currentFormState = "NEW_INFO"; updateHeader('FORM');
                     document.getElementById('sp-qty').innerText = `MÓN NÀY MỚI TINH`;
                     newItemSection.style.display = "block"; transDetails.style.display = "none";
-                    document.getElementById('prod-category').value = "BÁNH"; document.getElementById('prod-name').disabled = false;
+                    let catSelect = document.getElementById('prod-category');
+                    if(catSelect.options.length > 0) catSelect.selectedIndex = 0;
+                    document.getElementById('prod-name').disabled = false;
                     document.getElementById('kyc-vendor').value = "";
                     renderKYCFields(); 
                     document.getElementById('prod-name').value = val; 
