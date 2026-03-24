@@ -3,25 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WMS Scanner - Nhập Số Lượng</title>
+    <title>WMS Scanner - Log Giao Dịch</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         body { font-family: -apple-system, sans-serif; padding: 15px; text-align: center; background: #f8fafc; margin: 0; }
         .container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); max-width: 500px; margin: 0 auto; }
-        
         #reader { width: 100%; border-radius: 8px; overflow: hidden; margin-bottom: 15px; }
         
-        /* Box nhập số lượng, mặc định ẩn đi */
-        #input-form { display: none; background: #eff6ff; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #bfdbfe; }
-        .sp-info { font-size: 18px; font-weight: bold; color: #1e3a8a; margin-bottom: 5px; }
-        .qty-info { font-size: 14px; color: #475569; margin-bottom: 15px; }
+        #input-form { display: none; background: #eff6ff; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #bfdbfe; text-align: left;}
+        .sp-info { font-size: 18px; font-weight: bold; color: #1e3a8a; margin-bottom: 5px; text-align: center;}
+        .qty-info { font-size: 14px; color: #475569; margin-bottom: 15px; text-align: center;}
         
-        input[type="number"] { width: 80%; padding: 12px; font-size: 16px; border: 1px solid #cbd5e1; border-radius: 6px; margin-bottom: 15px; text-align: center; }
-        button { padding: 12px 20px; font-size: 16px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; width: 48%; }
+        label { font-weight: bold; font-size: 14px; color: #334155; display: block; margin-bottom: 5px; }
+        select, input[type="number"], input[type="text"] { width: 100%; padding: 12px; font-size: 16px; border: 1px solid #cbd5e1; border-radius: 6px; margin-bottom: 15px; box-sizing: border-box; }
+        
+        #vendor-group { display: none; /* Mặc định ẩn, chỉ hiện khi chọn Nhập */ }
+        
+        .btn-group { display: flex; justify-content: space-between; gap: 10px; }
+        button { padding: 12px; font-size: 16px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; flex: 1; }
         .btn-submit { background: #2563eb; color: white; }
         .btn-cancel { background: #e2e8f0; color: #475569; }
 
-        #status { padding: 15px; border-radius: 8px; font-weight: bold; font-size: 15px; }
+        #status { padding: 15px; border-radius: 8px; font-weight: bold; font-size: 15px; margin-top: 15px;}
         .success { background-color: #dcfce7; color: #166534; }
         .error { background-color: #fee2e2; color: #991b1b; }
         .loading { background-color: #f1f5f9; color: #334155; }
@@ -30,7 +33,7 @@
 <body>
 
     <div class="container">
-        <h2>Nhập Kho Hàng</h2>
+        <h2>Quản Lý Giao Dịch</h2>
         
         <div id="scanner-section">
             <div id="reader"></div>
@@ -40,11 +43,23 @@
             <div class="sp-info" id="sp-name">Tên Sản Phẩm</div>
             <div class="qty-info" id="sp-qty">Tồn hiện tại: 0</div>
             
-            <input type="number" id="input-amount" placeholder="Nhập số lượng..." value="1" min="1">
+            <label>Loại Giao Dịch</label>
+            <select id="trans-type" onchange="toggleVendor()">
+                <option value="Xuất" selected>Xuất kho</option>
+                <option value="Nhập">Nhập kho</option>
+            </select>
+
+            <div id="vendor-group">
+                <label>Nhà Cung Cấp (obj_name)</label>
+                <input type="text" id="obj-name" placeholder="Ví dụ: Cty ABC...">
+            </div>
+
+            <label>Số lượng (base_qty)</label>
+            <input type="number" id="input-amount" value="1" min="1">
             
-            <div style="display: flex; justify-content: space-between;">
+            <div class="btn-group">
                 <button class="btn-cancel" onclick="cancelInput()">Hủy bỏ</button>
-                <button class="btn-submit" onclick="submitUpdate()">Xác nhận</button>
+                <button class="btn-submit" onclick="submitUpdate()">Lưu Giao Dịch</button>
             </div>
         </div>
 
@@ -52,39 +67,41 @@
     </div>
 
     <script>
-        // THAY LINK APP SCRIPT CỦA BẠN VÀO ĐÂY
+        // DÁN LẠI LINK API VÀO ĐÂY
         const API_URL = "https://script.google.com/macros/s/AKfycbxZi7yFbogjlAfeRKAUkVXKnkYYli0MmByKCpVSNwuK-9_CWLHBijH8fF5trnmIX1yW0A/exec"; 
         
         const statusDiv = document.getElementById('status');
         const inputForm = document.getElementById('input-form');
         const scannerSection = document.getElementById('scanner-section');
+        const vendorGroup = document.getElementById('vendor-group');
+        const transTypeSelect = document.getElementById('trans-type');
         
         const html5QrCode = new Html5Qrcode("reader");
         let isProcessing = false;
         let currentScannedCode = "";
 
-        // Khởi động Camera
-        html5QrCode.start(
-            { facingMode: "environment" }, 
-            { fps: 10, qrbox: { width: 250, height: 250 } }, 
-            onScanSuccess
-        ).then(() => {
-            statusDiv.innerText = "Sẵn sàng: Đưa mã vào khung hình";
-        }).catch((err) => {
-            statusDiv.innerText = "Lỗi Camera. Vui lòng cấp quyền!";
-            statusDiv.className = "error";
-        });
+        html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, onScanSuccess)
+            .then(() => { statusDiv.innerText = "Sẵn sàng: Đưa mã vào khung hình"; })
+            .catch((err) => { statusDiv.innerText = "Lỗi Camera."; statusDiv.className = "error"; });
 
-        // 1. KHI QUÉT THÀNH CÔNG
+        // Hàm ẩn hiện khung nhập Nhà Cung Cấp
+        function toggleVendor() {
+            if (transTypeSelect.value === "Nhập") {
+                vendorGroup.style.display = "block";
+            } else {
+                vendorGroup.style.display = "none";
+                document.getElementById('obj-name').value = ""; // Clear dữ liệu khi chọn lại Xuất
+            }
+        }
+
         function onScanSuccess(decodedText) {
-            if (isProcessing) return; // Chặn quét liên tục
+            if (isProcessing) return;
             isProcessing = true;
             currentScannedCode = decodedText;
             
-            statusDiv.innerText = `Đang tra cứu mã: ${decodedText}...`;
+            statusDiv.innerText = `Đang tải thông tin mã: ${decodedText}...`;
             statusDiv.className = "loading";
 
-            // Gọi API lấy thông tin (action: 'get_info')
             fetch(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -93,47 +110,54 @@
             .then(res => res.json())
             .then(data => {
                 if(data.status === 'success') {
-                    // Nếu có mã, ẩn camera, hiện form nhập
                     scannerSection.style.display = "none";
                     inputForm.style.display = "block";
                     
                     document.getElementById('sp-name').innerText = data.tenSP;
                     document.getElementById('sp-qty').innerText = `Tồn hiện tại: ${data.currentQty}`;
-                    document.getElementById('input-amount').value = 1; // Reset về 1
                     
-                    statusDiv.innerText = "Vui lòng nhập số lượng.";
+                    // Reset Form
+                    document.getElementById('input-amount').value = 1;
+                    transTypeSelect.value = "Xuất"; 
+                    toggleVendor(); // Đảm bảo trạng thái UI khớp với lựa chọn mặc định
+
+                    statusDiv.innerText = "Vui lòng nhập chi tiết giao dịch.";
                     statusDiv.className = "success";
                 } else {
-                    // Mã không tồn tại
-                    statusDiv.innerText = `Lỗi: ${data.message}`;
+                    statusDiv.innerText = data.message;
                     statusDiv.className = "error";
-                    setTimeout(() => { resetScanner(); }, 2000);
+                    setTimeout(() => { resetScanner(); }, 2500);
                 }
             })
             .catch(err => {
-                statusDiv.innerText = "Lỗi kết nối mạng khi tra cứu!";
+                statusDiv.innerText = "Lỗi đường truyền!";
                 statusDiv.className = "error";
-                setTimeout(() => { resetScanner(); }, 2000);
+                setTimeout(() => { resetScanner(); }, 2500);
             });
         }
 
-        // 2. KHI BẤM XÁC NHẬN NHẬP KHO
         function submitUpdate() {
             let amount = document.getElementById('input-amount').value;
-            if (!amount || amount <= 0) {
-                alert("Số lượng phải lớn hơn 0");
-                return;
-            }
+            let transType = transTypeSelect.value;
+            let objName = document.getElementById('obj-name').value;
 
-            statusDiv.innerText = `Đang cập nhật kho...`;
+            if (!amount || amount <= 0) { alert("Số lượng phải lớn hơn 0"); return; }
+            if (transType === "Nhập" && objName.trim() === "") { alert("Vui lòng nhập Nhà cung cấp"); return; }
+
+            statusDiv.innerText = `Đang lưu giao dịch...`;
             statusDiv.className = "loading";
-            inputForm.style.display = "none"; // Ẩn form đi cho gọn
+            inputForm.style.display = "none";
 
-            // Gọi API cập nhật (action: 'update')
             fetch(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({ action: 'update', maSP: currentScannedCode, amount: amount })
+                body: JSON.stringify({ 
+                    action: 'update', 
+                    maSP: currentScannedCode, 
+                    amount: amount,
+                    trans_type: transType,
+                    obj_name: objName
+                })
             })
             .then(res => res.json())
             .then(data => {
@@ -141,30 +165,26 @@
                     statusDiv.innerText = data.message;
                     statusDiv.className = "success";
                 } else {
-                    statusDiv.innerText = `Lỗi cập nhật: ${data.message}`;
+                    statusDiv.innerText = `Lỗi: ${data.message}`;
                     statusDiv.className = "error";
                 }
-                setTimeout(() => { resetScanner(); }, 2500);
+                setTimeout(() => { resetScanner(); }, 3000);
             })
             .catch(err => {
-                statusDiv.innerText = "Lỗi mạng khi cập nhật!";
+                statusDiv.innerText = "Lỗi kết nối máy chủ!";
                 statusDiv.className = "error";
-                setTimeout(() => { resetScanner(); }, 2500);
+                setTimeout(() => { resetScanner(); }, 3000);
             });
         }
 
-        // 3. KHI BẤM HỦY BỎ
-        function cancelInput() {
-            resetScanner();
-        }
+        function cancelInput() { resetScanner(); }
 
-        // Hàm đưa giao diện về trạng thái quét ban đầu
         function resetScanner() {
             inputForm.style.display = "none";
             scannerSection.style.display = "block";
             statusDiv.innerText = "Sẵn sàng quét mã tiếp theo...";
             statusDiv.className = "loading";
-            isProcessing = false; // Mở khóa cho quét tiếp
+            isProcessing = false;
         }
     </script>
 </body>
