@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,80 +8,383 @@
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         /* ÉP FONT TOÀN HỆ THỐNG */
-        * { font-family: Arial, "Segoe UI", sans-serif; box-sizing: border-box;}
-        body { background-color: #f4f7f6; margin: 0; padding: 5px; color: #111; }
-        .container { background: white; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto; position: relative; min-height: 96vh; display: flex; flex-direction: column; overflow: hidden; border: 1px solid #ddd;}
+        * {
+            font-family: Arial, "Segoe UI", sans-serif;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 5px;
+            color: #111;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            margin: 0 auto;
+            position: relative;
+            min-height: 96vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid #ddd;
+        }
 
         /* THANH HEADER ĐÃ ĐƯỢC CHIA LẠI THEO BẢN VẼ */
-        .top-bar { position: sticky; top: 0; background-color: #fff; display: flex; flex-direction: column; z-index: 1000; border-bottom: 1px solid #ddd; }
-        
+        .top-bar {
+            position: sticky;
+            top: 0;
+            background-color: #fff;
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
+            border-bottom: 1px solid #ddd;
+        }
+
         /* Dòng 1: Tiêu đề Header */
-        .header-title-row { display: flex; justify-content: center; align-items: center; padding: 12px 10px; border-bottom: 1px solid #eee; min-height: 50px;}
-        .top-title { font-size: 20px; font-weight: bold; color: #000; text-align: center; margin: 0; text-transform: uppercase;}
-        
+        .header-title-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 12px 10px;
+            border-bottom: 1px solid #eee;
+            min-height: 50px;
+        }
+
+        .top-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #000;
+            text-align: center;
+            margin: 0;
+            text-transform: uppercase;
+        }
+
         /* Dòng 2: 3 Nút Bấm chia đều */
-        .header-btn-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; gap: 10px;}
-        .top-btn { flex: 1; padding: 10px; font-size: 16px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; color: white; display: none; text-align: center;}
-        
-        .btn-back { background-color: #d32f2f; } /* Đỏ */
-        .btn-reload { background-color: #6200ea; } /* Tím Xanh */
-        .btn-new-item { background-color: #008000; } /* Xanh Lá */
-        .btn-save { background-color: #0056b3; } /* Xanh Dương Đậm */
+        .header-btn-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            gap: 10px;
+        }
+
+        .top-btn {
+            flex: 1;
+            padding: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            color: white;
+            display: none;
+            text-align: center;
+        }
+
+        .btn-back {
+            background-color: #d32f2f;
+        }
+
+        /* Đỏ */
+        .btn-reload {
+            background-color: #6200ea;
+        }
+
+        /* Tím Xanh */
+        .btn-new-item {
+            background-color: #008000;
+        }
+
+        /* Xanh Lá */
+        .btn-save {
+            background-color: #0056b3;
+        }
+
+        /* Xanh Dương Đậm */
 
         /* Dòng 3: Date Filter nằm trên cùng trong view List */
-        .date-filter-box { display: none; padding: 0 10px 10px 10px; width: 100%;}
-        .date-filter-box input { width: 100%; border: 1px solid #a5b4fc; color: #1e3a8a; font-weight: bold; text-align: center; font-size: 18px; background: #eff6ff; padding: 12px; border-radius: 8px;}
+        .date-filter-box {
+            display: none;
+            padding: 0 10px 10px 10px;
+            width: 100%;
+        }
 
-        .main-content { padding: 15px; flex-grow: 1; display: flex; flex-direction: column; }
-        
+        .date-filter-box input {
+            width: 100%;
+            border: 1px solid #a5b4fc;
+            color: #1e3a8a;
+            font-weight: bold;
+            text-align: center;
+            font-size: 18px;
+            background: #eff6ff;
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .main-content {
+            padding: 15px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
         /* MENU CHÍNH */
-        .menu-btn { display: flex; align-items: center; justify-content: center; width: 100%; padding: 22px; margin-bottom: 15px; font-size: 20px; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; color: #003366; background-color: #e6f0ff; border: 1px solid #b3d1ff;}
-        
-        #scanner-section, #input-form, #inventory-section { display: none; flex-direction: column; flex-grow: 1;}
-        #reader { width: 100%; border-radius: 10px; border: 3px solid #0056b3; overflow: hidden; margin-bottom: 20px; }
-        
-        .qty-info { font-size: 22px; font-weight: bold; color: #d10000; margin-bottom: 20px; text-align: center; background: #ffe6e6; padding: 15px; border-radius: 10px; line-height: 1.4;}
-        .form-group { margin-bottom: 20px; text-align: left;}
-        label { font-weight: bold; font-size: 17px; color: #111; display: block; margin-bottom: 8px; }
-        input, select { width: 100%; padding: 15px; font-size: 18px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; background-color: #fff;}
-        input:focus, select:focus { border-color: #0056b3; outline: none; background-color: #f0f8ff;}
-        input:disabled { background-color: #e0e0e0; color: #555; }
-        
-        .btn-confirm-new { width: 100%; padding: 15px; background-color: #0056b3; color: white; font-weight: bold; font-size: 18px; border: none; border-radius: 8px; cursor: pointer; margin-top: 15px; }
+        .menu-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 22px;
+            margin-bottom: 15px;
+            font-size: 20px;
+            font-weight: bold;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            color: #003366;
+            background-color: #e6f0ff;
+            border: 1px solid #b3d1ff;
+        }
 
-        #status { padding: 15px; border-radius: 8px; font-weight: bold; font-size: 16px; margin-top: auto; text-align: center; display: none; line-height: 1.4;}
-        .success { background-color: #ccffcc; color: #006600; display: block !important;}
-        .error { background-color: #ffcccc; color: #cc0000; display: block !important;}
-        .loading { background-color: #e6f2ff; color: #003366; display: block !important;}
+        #scanner-section,
+        #input-form,
+        #inventory-section {
+            display: none;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+        #reader {
+            width: 100%;
+            border-radius: 10px;
+            border: 3px solid #0056b3;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .qty-info {
+            font-size: 22px;
+            font-weight: bold;
+            color: #d10000;
+            margin-bottom: 20px;
+            text-align: center;
+            background: #ffe6e6;
+            padding: 15px;
+            border-radius: 10px;
+            line-height: 1.4;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        label {
+            font-weight: bold;
+            font-size: 17px;
+            color: #111;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+            background-color: #fff;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: #0056b3;
+            outline: none;
+            background-color: #f0f8ff;
+        }
+
+        input:disabled {
+            background-color: #e0e0e0;
+            color: #555;
+        }
+
+        .btn-confirm-new {
+            width: 100%;
+            padding: 15px;
+            background-color: #0056b3;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        #status {
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 16px;
+            margin-top: auto;
+            text-align: center;
+            display: none;
+            line-height: 1.4;
+        }
+
+        .success {
+            background-color: #ccffcc;
+            color: #006600;
+            display: block !important;
+        }
+
+        .error {
+            background-color: #ffcccc;
+            color: #cc0000;
+            display: block !important;
+        }
+
+        .loading {
+            background-color: #e6f2ff;
+            color: #003366;
+            display: block !important;
+        }
 
         /* BỘ LỌC TỒN KHO & SCROLLBAR NẰM DƯỚI DATE */
-        .category-scroll { display: flex; overflow-x: auto; gap: 10px; padding-bottom: 12px; white-space: nowrap; margin-bottom: 15px;}
-        .category-scroll::-webkit-scrollbar { height: 6px; } 
-        .category-scroll::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 5px; }
-        .category-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 5px; }
-        
-        .cat-chip { padding: 10px 18px; background-color: #e2e8f0; border: none; border-radius: 25px; font-size: 15px; font-weight: bold; color: #333; cursor: pointer;}
-        .cat-chip.active { background-color: #008000; color: white;}
+        .category-scroll {
+            display: flex;
+            overflow-x: auto;
+            gap: 10px;
+            padding-bottom: 12px;
+            white-space: nowrap;
+            margin-bottom: 15px;
+        }
 
-        .search-box { margin-bottom: 15px; }
-        .search-box input { border: 2px solid #4ade80; background-color: #f0fdf4; padding: 12px; font-size: 16px;}
-        
-        #inventory-list { flex-grow: 1; overflow-y: auto;}
-        
+        .category-scroll::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .category-scroll::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 5px;
+        }
+
+        .category-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 5px;
+        }
+
+        .cat-chip {
+            padding: 10px 18px;
+            background-color: #e2e8f0;
+            border: none;
+            border-radius: 25px;
+            font-size: 15px;
+            font-weight: bold;
+            color: #333;
+            cursor: pointer;
+        }
+
+        .cat-chip.active {
+            background-color: #008000;
+            color: white;
+        }
+
+        .search-box {
+            margin-bottom: 15px;
+        }
+
+        .search-box input {
+            border: 2px solid #4ade80;
+            background-color: #f0fdf4;
+            padding: 12px;
+            font-size: 16px;
+        }
+
+        #inventory-list {
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+
         /* SẢN PHẨM MÀU ĐEN CHUẨN */
-        .inv-item { padding: 15px 10px; border-bottom: 1px solid #ddd; text-align: left; cursor: pointer;}
-        .inv-item:active { background-color: #f1f5f9; } 
-        .inv-name { font-weight: bold; color: #111; font-size: 18px; margin-bottom: 8px; word-wrap: break-word; line-height: 1.3;}
-        .inv-row { display: flex; justify-content: space-between; font-size: 14px; color: #666; align-items: baseline;}
-        .inv-status { font-size: 18px; font-weight: bold; }
+        .inv-item {
+            padding: 15px 10px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .inv-item:active {
+            background-color: #f1f5f9;
+        }
+
+        .inv-name {
+            font-weight: bold;
+            color: #111;
+            font-size: 18px;
+            margin-bottom: 8px;
+            word-wrap: break-word;
+            line-height: 1.3;
+        }
+
+        .inv-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            color: #666;
+            align-items: baseline;
+        }
+
+        .inv-status {
+            font-size: 18px;
+            font-weight: bold;
+        }
 
         /* Vùng KYC */
-        #dynamic-attributes-container { background: #e6f7ff; padding: 15px; border-radius: 8px; margin-bottom: 15px; display: none; border: 1px dashed #91d5ff;}
-        .kyc-label { font-size: 15px; color: #003366; margin-bottom: 5px; font-weight: bold;}
-        .kyc-select { padding: 12px; font-size: 16px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #91d5ff; width: 100%; background: #fff;}
-        .kyc-vendor-box { padding: 15px; background: #f0fdf4; border-radius: 8px; margin-bottom: 15px; border: 1px dashed #bbf7d0; display: none;}
+        #dynamic-attributes-container {
+            background: #e6f7ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: none;
+            border: 1px dashed #91d5ff;
+        }
+
+        .kyc-label {
+            font-size: 15px;
+            color: #003366;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .kyc-select {
+            padding: 12px;
+            font-size: 16px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #91d5ff;
+            width: 100%;
+            background: #fff;
+        }
+
+        .kyc-vendor-box {
+            padding: 15px;
+            background: #f0fdf4;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 1px dashed #bbf7d0;
+            display: none;
+        }
     </style>
 </head>
+
 <body>
 
     <div class="container">
@@ -88,7 +392,7 @@
             <div class="header-title-row">
                 <div id="top-title" class="top-title">MENU</div>
             </div>
-            
+
             <div class="header-btn-row" id="header-buttons" style="display:none;">
                 <button id="top-btn-back" class="top-btn btn-back" onclick="goBack()">ĐÓNG</button>
                 <button id="top-btn-reload" class="top-btn btn-reload" onclick="fetchDataInit()">TẢI LẠI</button>
@@ -116,53 +420,65 @@
             <div id="inventory-section">
                 <div class="category-scroll" id="cat-container"></div>
                 <div class="search-box">
-                    <input type="text" id="inv-search" placeholder="🔍 Gõ tên sản phẩm để tìm nhanh..." oninput="applyFilters()">
+                    <input type="text" id="inv-search" placeholder="🔍 Gõ tên sản phẩm để tìm nhanh..."
+                        oninput="applyFilters()">
                 </div>
-                <p style="text-align: center; color: #888; font-size: 13px; font-style: italic; margin-top: 0;">(Chạm vào món hàng bên dưới để Kiểm kho)</p>
+                <p style="text-align: center; color: #888; font-size: 13px; font-style: italic; margin-top: 0;">(Chạm
+                    vào món hàng bên dưới để Kiểm kho)</p>
                 <div id="inventory-list"></div>
             </div>
 
             <div id="input-form">
                 <div class="qty-info" id="sp-qty" style="display:none;"></div>
-                
+
                 <div class="form-group" id="group-search">
                     <label>Bấm vào đây để chọn món hàng:</label>
-                    <input type="text" id="manual-prod" list="prod-datalist" placeholder="Ví dụ: Bánh Tráng..." onchange="onManualSelect()">
+                    <input type="text" id="manual-prod" list="prod-datalist" placeholder="Ví dụ: Bánh Tráng..."
+                        onchange="onManualSelect()">
                     <datalist id="prod-datalist"></datalist>
                 </div>
 
-                <div id="new-item-section" style="display:none; padding: 15px; background: #fff5e6; border-radius: 12px; margin-bottom: 20px; border: 2px dashed #ff9900;">
-                    <p style="color: #d97706; font-weight:bold; margin-top:0; text-align:center; font-size:16px;">✨ CHUẨN HÓA MÃ HÀNG MỚI ✨</p>
-                    
+                <div id="new-item-section"
+                    style="display:none; padding: 15px; background: #fff5e6; border-radius: 12px; margin-bottom: 20px; border: 2px dashed #ff9900;">
+                    <p style="color: #d97706; font-weight:bold; margin-top:0; text-align:center; font-size:16px;">✨
+                        CHUẨN HÓA MÃ HÀNG MỚI ✨</p>
+
                     <div class="form-group" style="margin-bottom: 15px;">
                         <label>1. Chọn Nhóm Hàng trước:</label>
-                        <select id="prod-category" onchange="handleCategoryChange(this)" style="background-color: #fff9e6; border-color: #ff9900;"></select>
+                        <select id="prod-category" onchange="handleCategoryChange(this)"
+                            style="background-color: #fff9e6; border-color: #ff9900;"></select>
                     </div>
                     <div id="dynamic-attributes-container"></div>
                     <div id="kyc-vendor-box" class="kyc-vendor-box">
                         <label class="kyc-label" style="color: #166534;">- Nhà Cung Cấp (Tùy chọn):</label>
-                        <select id="kyc-vendor" class="kyc-select" style="border-color:#bbf7d0;" onchange="handleDropdownAddNew(this)"></select>
+                        <select id="kyc-vendor" class="kyc-select" style="border-color:#bbf7d0;"
+                            onchange="handleDropdownAddNew(this)"></select>
                     </div>
 
                     <div class="form-group">
                         <label style="color: #008000;">Tên chuẩn sẽ được ghi vào sổ:</label>
-                        <input type="text" id="prod-name" placeholder="Máy sẽ tự điền tên vào đây..." style="border: 2px solid #008000; background: #f0fff0; margin-top: 5px;">
+                        <input type="text" id="prod-name" placeholder="Máy sẽ tự điền tên vào đây..."
+                            style="border: 2px solid #008000; background: #f0fff0; margin-top: 5px;">
                     </div>
-                    <button type="button" class="btn-confirm-new" onclick="confirmNewItemInfo()">Đã ghép xong Tên - Điền số lượng</button>
+                    <button type="button" class="btn-confirm-new" onclick="confirmNewItemInfo()">Đã ghép xong Tên - Điền
+                        số lượng</button>
                 </div>
-                
+
                 <div id="transaction-details" style="display:none;">
                     <div class="form-group">
                         <label>Hôm nay cô chú muốn làm gì?</label>
-                        <select id="trans-type" onchange="toggleFormLogic()" style="background-color: #e6f7ff; border-color: #0056b3; font-weight: bold; color: #0056b3;">
+                        <select id="trans-type" onchange="toggleFormLogic()"
+                            style="background-color: #e6f7ff; border-color: #0056b3; font-weight: bold; color: #0056b3;">
                             <option value="COUNT" selected>KIỂM KÊ (Chốt số trên quầy)</option>
                             <option value="IN">NHẬP HÀNG TỚI (Cộng thêm vào)</option>
                         </select>
                     </div>
 
                     <div class="form-group">
-                        <label id="label-amount" style="color: #d10000; text-transform: uppercase;">Thực tế trên kệ đang có mấy cái?</label>
-                        <input type="number" id="input-amount" pattern="\d*" placeholder="Gõ số lượng..." style="font-size: 24px; font-weight: bold; color: #d10000;">
+                        <label id="label-amount" style="color: #d10000; text-transform: uppercase;">Thực tế trên kệ đang
+                            có mấy cái?</label>
+                        <input type="number" id="input-amount" pattern="\d*" placeholder="Gõ số lượng..."
+                            style="font-size: 24px; font-weight: bold; color: #d10000;">
                     </div>
 
                     <div class="form-group" id="group-obj" style="display:none;">
@@ -182,22 +498,19 @@
     </div>
 
     <script>
-        // DÁN LẠI LINK API CỦA BẠN VÀO ĐÂY:
         const API_URL = "https://script.google.com/macros/s/AKfycbxZi7yFbogjlAfeRKAUkVXKnkYYli0MmByKCpVSNwuK-9_CWLHBijH8fF5trnmIX1yW0A/exec";
-        
-        let dynamicKycConfig = {}; 
+
+        let dynamicKycConfig = {};
 
         const mainMenu = document.getElementById('main-menu');
         const scannerSection = document.getElementById('scanner-section');
         const inventorySection = document.getElementById('inventory-section');
         const inputForm = document.getElementById('input-form');
         const statusDiv = document.getElementById('status');
-        
-        // Header Elements
+
         const topTitle = document.getElementById('top-title');
         const headerBtnRow = document.getElementById('header-buttons');
         const headerDateFilter = document.getElementById('header-date-filter');
-        
         const btnHeadBack = document.getElementById('top-btn-back');
         const btnHeadReload = document.getElementById('top-btn-reload');
         const btnHeadSave = document.getElementById('top-btn-save');
@@ -211,43 +524,98 @@
         const transDetails = document.getElementById('transaction-details');
         const dateInput = document.getElementById('trans-date');
         const listDateFilter = document.getElementById('list-date-filter');
-        
-        let html5QrCode, isProcessing = false, currentScannedCode = ""; 
-        let formMode = "SCAN", currentFormState = "SELECT_PROD", currentListMode = "VIEW"; 
-        let currentScreen = "MENU", previousScreen = "MENU"; 
-        
-        let cachedVendors = [], cachedProducts = [], globalInventory = [], currentFilterCat = "TẤT CẢ";
-        let currentExpectedQty = 0; 
 
-        window.onload = function() {
+        let html5QrCode, isProcessing = false, currentScannedCode = "";
+        let formMode = "SCAN", currentFormState = "SELECT_PROD", currentListMode = "VIEW";
+        let currentScreen = "MENU", previousScreen = "MENU";
+
+        let cachedVendors = [], cachedProducts = [], globalInventory = [], currentFilterCat = "TẤT CẢ";
+        let currentExpectedQty = 0;
+
+        // =============================================
+        // FLAG CHẶN DOUBLE-LOAD
+        // =============================================
+        let isLoading = false;
+
+        // =============================================
+        // TOAST MESSAGE SYSTEM
+        // =============================================
+        function showToast(msg, type = "info") {
+            let container = document.getElementById('toast-container');
+            let toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = msg;
+            container.appendChild(toast);
+            setTimeout(() => { toast.remove(); }, 3000);
+        }
+
+        window.onload = function () {
             let today = new Date().toISOString().split('T')[0];
-            dateInput.value = today; 
+            dateInput.value = today;
             listDateFilter.value = today;
             fetchDataInit();
         };
 
-        function fetchDataInit() {
+        // =============================================
+        // fetchDataInit — ĐÃ SỬA: chặn double, không gọi chồng request
+        // =============================================
+        function fetchDataInit(callback) {
+            if (isLoading) {
+                showToast("⏳ Đang tải, vui lòng chờ...", "warning");
+                return;
+            }
+            isLoading = true;
+            btnHeadReload.disabled = true;
+            btnHeadReload.innerText = "ĐANG TẢI...";
             showStatus("Đang tải dữ liệu từ kho...", "loading");
+
             fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'init' }) })
-            .then(res => res.json()).then(data => {
-                if(data.status === 'success') {
-                    cachedVendors = data.vendors; cachedProducts = data.products;
-                    dynamicKycConfig = data.kycConfig || {}; 
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        cachedVendors = data.vendors;
+                        cachedProducts = data.products;
+                        dynamicKycConfig = data.kycConfig || {};
 
-                    let dl = document.getElementById('prod-datalist'); dl.innerHTML = "";
-                    cachedProducts.forEach(p => {
-                        let opt = document.createElement('option'); opt.value = `${p.maSP} - ${p.tenSP}`; dl.appendChild(opt);
-                    });
+                        let dl = document.getElementById('prod-datalist');
+                        dl.innerHTML = "";
+                        cachedProducts.forEach(p => {
+                            let opt = document.createElement('option');
+                            opt.value = `${p.maSP} - ${p.tenSP}`;
+                            dl.appendChild(opt);
+                        });
 
-                    populateDynamicCategories(); populateKYCVendor(); 
-                    
-                    if (currentScreen === "LIST") {
-                        fetchInventoryForDate();
+                        populateDynamicCategories();
+                        populateKYCVendor();
+
+                        // Sau khi init xong, mới tải inventory nếu đang ở màn LIST
+                        if (currentScreen === "LIST") {
+                            fetchInventoryForDate(() => {
+                                isLoading = false;
+                                btnHeadReload.disabled = false;
+                                btnHeadReload.innerText = "TẢI LẠI";
+                            });
+                        } else {
+                            statusDiv.style.display = "none";
+                            isLoading = false;
+                            btnHeadReload.disabled = false;
+                            btnHeadReload.innerText = "TẢI LẠI";
+                            if (callback) callback();
+                        }
                     } else {
-                        statusDiv.style.display = "none";
+                        showToast("❌ Lỗi khi tải dữ liệu!", "error");
+                        isLoading = false;
+                        btnHeadReload.disabled = false;
+                        btnHeadReload.innerText = "TẢI LẠI";
                     }
-                }
-            }).catch(e => showStatus("Mạng yếu, mở lại giùm con.", "error"));
+                })
+                .catch(() => {
+                    showToast("📶 Mạng yếu, mở lại giùm con.", "error");
+                    showStatus("Mạng yếu, mở lại giùm con.", "error");
+                    isLoading = false;
+                    btnHeadReload.disabled = false;
+                    btnHeadReload.innerText = "TẢI LẠI";
+                });
         }
 
         function populateDynamicCategories() {
@@ -255,7 +623,6 @@
             let scrollContainer = document.getElementById('cat-container');
             catSelect.innerHTML = "";
             scrollContainer.innerHTML = `<button class="cat-chip active" onclick="filterCategory('TẤT CẢ', this)">TẤT CẢ</button>`;
-
             let categories = Object.keys(dynamicKycConfig);
             categories.forEach(cat => {
                 let opt = document.createElement('option'); opt.value = cat; opt.text = cat; catSelect.appendChild(opt);
@@ -273,33 +640,30 @@
         }
 
         function getToday() { return new Date().toISOString().split('T')[0]; }
-        function showStatus(msg, type) { statusDiv.innerHTML = msg; statusDiv.className = type; statusDiv.style.display="block";}
+        function showStatus(msg, type) { statusDiv.innerHTML = msg; statusDiv.className = type; statusDiv.style.display = "block"; }
 
-        // HÀM QUẢN LÝ HIỂN THỊ HEADER RẤT CHẶT CHẼ
         function updateHeader(viewName) {
-            btnHeadBack.style.display = "none"; btnHeadReload.style.display = "none"; 
+            btnHeadBack.style.display = "none"; btnHeadReload.style.display = "none";
             btnHeadSave.style.display = "none"; btnHeadNew.style.display = "none";
             headerBtnRow.style.display = "flex";
             headerDateFilter.style.display = "none";
 
-            if(viewName === 'MENU') {
-                topTitle.innerText = "MENU"; 
-                headerBtnRow.style.display = "none"; // Menu ko có nút
-            } else if(viewName === 'LIST') {
-                topTitle.innerText = currentListMode === 'STOCK' ? "KIỂM KÊ" : "TỒN KHO"; 
-                btnHeadBack.style.display = "block"; 
-                btnHeadReload.style.display = "block"; 
-                btnHeadNew.style.display = "block"; 
-                headerDateFilter.style.display = "block"; // Hiện thanh Ngày
-            } else if(viewName === 'SCAN') {
-                topTitle.innerText = "QUÉT MÃ"; 
-                btnHeadBack.style.display = "block"; 
-            } else if(viewName === 'FORM') {
-                topTitle.innerText = "GHI SỔ"; 
+            if (viewName === 'MENU') {
+                topTitle.innerText = "MENU";
+                headerBtnRow.style.display = "none";
+            } else if (viewName === 'LIST') {
+                topTitle.innerText = currentListMode === 'STOCK' ? "KIỂM KÊ" : "TỒN KHO";
                 btnHeadBack.style.display = "block";
-                if(currentFormState === "TRANS_INFO") {
-                    btnHeadSave.style.display = "block"; 
-                }
+                btnHeadReload.style.display = "block";
+                btnHeadNew.style.display = "block";
+                headerDateFilter.style.display = "block";
+            } else if (viewName === 'SCAN') {
+                topTitle.innerText = "QUÉT MÃ";
+                btnHeadBack.style.display = "block";
+            } else if (viewName === 'FORM') {
+                topTitle.innerText = "GHI SỔ";
+                btnHeadBack.style.display = "block";
+                if (currentFormState === "TRANS_INFO") btnHeadSave.style.display = "block";
             }
         }
 
@@ -308,7 +672,7 @@
                 inputForm.style.display = "none"; inventorySection.style.display = "block"; statusDiv.style.display = "none";
                 currentScreen = "LIST"; updateHeader('LIST');
             } else {
-                if (html5QrCode && html5QrCode.isScanning) html5QrCode.stop().catch(e=>e);
+                if (html5QrCode && html5QrCode.isScanning) html5QrCode.stop().catch(e => e);
                 scannerSection.style.display = "none"; inputForm.style.display = "none";
                 inventorySection.style.display = "none"; statusDiv.style.display = "none";
                 mainMenu.style.display = "block"; isProcessing = false;
@@ -323,16 +687,16 @@
                     let opt = document.createElement('option'); opt.value = newVal.trim(); opt.text = newVal.trim();
                     selectElement.insertBefore(opt, selectElement.lastElementChild); selectElement.value = newVal.trim();
                 } else {
-                    selectElement.value = ""; if(selectElement.id === "obj-select") selectElement.value = "Nhà cung cấp lẻ";
+                    selectElement.value = ""; if (selectElement.id === "obj-select") selectElement.value = "Nhà cung cấp lẻ";
                 }
             }
-            autoGenName(); 
+            autoGenName();
         }
 
         function handleCategoryChange(sel) {
-            if(sel.value === "ADD_NEW") {
+            if (sel.value === "ADD_NEW") {
                 let newVal = prompt("Gõ tên Nhóm hàng mới vào đây:");
-                if(newVal && newVal.trim() !== "") {
+                if (newVal && newVal.trim() !== "") {
                     let opt = document.createElement('option'); opt.value = newVal.trim().toUpperCase(); opt.text = newVal.trim().toUpperCase();
                     sel.insertBefore(opt, sel.lastElementChild); sel.value = opt.value;
                 } else { sel.value = "KHÁC"; }
@@ -342,16 +706,16 @@
 
         function toggleFormLogic() {
             let type = transTypeSelect.value;
-            objSelect.innerHTML = ""; 
-            if(type === "IN") {
+            objSelect.innerHTML = "";
+            if (type === "IN") {
                 labelAmount.innerText = "NHẬP THÊM VÀO KHO MẤY CÁI?"; labelAmount.style.color = "#0056b3"; document.getElementById('input-amount').style.color = "#0056b3";
                 document.getElementById('group-obj').style.display = "block";
                 let opt = document.createElement('option'); opt.value = "Nhà cung cấp lẻ"; opt.text = "Nhà cung cấp lẻ"; objSelect.appendChild(opt);
                 cachedVendors.forEach(name => { let o = document.createElement('option'); o.value = name; o.text = name; objSelect.appendChild(o); });
                 let optNew = document.createElement('option'); optNew.value = "ADD_NEW"; optNew.text = "+ Thêm NCC mới..."; objSelect.appendChild(optNew);
-            } else { 
+            } else {
                 labelAmount.innerText = "THỰC TẾ TRÊN KỆ ĐANG CÓ MẤY CÁI?"; labelAmount.style.color = "#d10000"; document.getElementById('input-amount').style.color = "#d10000";
-                document.getElementById('group-obj').style.display = "none"; 
+                document.getElementById('group-obj').style.display = "none";
             }
         }
 
@@ -360,8 +724,7 @@
             let container = document.getElementById('dynamic-attributes-container');
             let fields = dynamicKycConfig[cat];
             document.getElementById('kyc-vendor-box').style.display = "block";
-
-            if(fields && fields.length > 0) {
+            if (fields && fields.length > 0) {
                 container.style.display = "block";
                 let html = `<p style="margin-top:0; font-weight:bold; color:#0056b3; margin-bottom:15px; font-size:14px;">Mời cô chú chọn để máy ghép tên:</p>`;
                 fields.forEach(f => {
@@ -371,7 +734,7 @@
                 });
                 container.innerHTML = html;
             } else { container.style.display = "none"; container.innerHTML = ""; }
-            autoGenName(); 
+            autoGenName();
         }
 
         function autoGenName() {
@@ -380,13 +743,12 @@
             if (container.style.display !== "none") {
                 let selects = document.querySelectorAll('.kyc-field-dynamic');
                 let nameParts = [];
-                selects.forEach(s => { if(s.value !== "" && s.value !== "ADD_NEW") nameParts.push(s.value); });
+                selects.forEach(s => { if (s.value !== "" && s.value !== "ADD_NEW") nameParts.push(s.value); });
                 baseName = nameParts.join(" ");
             } else {
                 let currentName = document.getElementById('prod-name').value;
                 baseName = currentName.includes(" - ") ? currentName.split(" - ")[0] : currentName;
             }
-            
             let vendor = document.getElementById('kyc-vendor').value;
             let finalName = baseName.trim();
             if (finalName !== "" && vendor !== "" && vendor !== "ADD_NEW") finalName = finalName + " - " + vendor;
@@ -398,76 +760,71 @@
             let expected = currentExpectedQty;
             let statusText = ending !== "" ? `Tồn: ${ending}` : `Dự kiến: ${expected}`;
             let statusColor = ending !== "" ? "#d10000" : "#008000";
-            
             document.getElementById('sp-qty').style.display = "block";
             document.getElementById('sp-qty').style.backgroundColor = "#fff";
             document.getElementById('sp-qty').style.border = `2px solid ${statusColor}`;
-            document.getElementById('sp-qty').innerHTML = `Món: ${tenSP} | <span style="color:${statusColor}">${statusText}</span>`; 
+            document.getElementById('sp-qty').innerHTML = `Món: ${tenSP} | <span style="color:${statusColor}">${statusText}</span>`;
         }
 
         function openNewItemForm() {
-            formMode = "MANUAL"; currentScannedCode = ""; currentScreen = "FORM"; previousScreen = "LIST"; 
-            inventorySection.style.display = "none"; inputForm.style.display = "block"; 
-            document.getElementById('group-search').style.display = "none"; 
-            
+            formMode = "MANUAL"; currentScannedCode = ""; currentScreen = "FORM"; previousScreen = "LIST";
+            inventorySection.style.display = "none"; inputForm.style.display = "block";
+            document.getElementById('group-search').style.display = "none";
             document.getElementById('sp-qty').style.display = "block";
             document.getElementById('sp-qty').style.backgroundColor = "#ffe6e6";
             document.getElementById('sp-qty').style.border = "none";
             document.getElementById('sp-qty').innerHTML = "HÀNG NÀY MỚI TINH<br><span style='font-size:14px; font-weight:normal; color:#555;'>Chưa có lưu ở ngày đang chọn</span>";
-            
             currentFormState = "NEW_INFO"; updateHeader('FORM');
-            currentExpectedQty = 0; 
-            
+            currentExpectedQty = 0;
             newItemSection.style.display = "block"; transDetails.style.display = "none";
             let catSelect = document.getElementById('prod-category');
-            if(catSelect.options.length > 0) catSelect.selectedIndex = 0;
-            document.getElementById('prod-name').disabled = false; document.getElementById('kyc-vendor').value = ""; 
-            
+            if (catSelect.options.length > 0) catSelect.selectedIndex = 0;
+            document.getElementById('prod-name').disabled = false; document.getElementById('kyc-vendor').value = "";
             dateInput.value = listDateFilter.value;
-            renderKYCFields(); 
-            transTypeSelect.value = (currentListMode === "STOCK") ? "COUNT" : "IN"; toggleFormLogic(); 
+            renderKYCFields();
+            transTypeSelect.value = (currentListMode === "STOCK") ? "COUNT" : "IN"; toggleFormLogic();
         }
 
         function openScanner() {
             formMode = "SCAN"; currentScreen = "SCAN"; previousScreen = "MENU";
             mainMenu.style.display = "none"; scannerSection.style.display = "block"; updateHeader('SCAN');
-            if(!html5QrCode) html5QrCode = new Html5Qrcode("reader");
-            html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, onScanSuccess).catch(e => { showStatus("Lỗi camera.", "error"); setTimeout(goBack, 2000); });
+            if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
+            html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, onScanSuccess)
+                .catch(() => { showToast("❌ Không mở được camera.", "error"); setTimeout(goBack, 2000); });
         }
 
         function onScanSuccess(decodedText) {
             if (isProcessing) return; isProcessing = true; currentScannedCode = decodedText;
             html5QrCode.stop().then(() => {
-                showStatus(`Đang đọc dữ liệu...`, "loading");
+                showStatus("Đang đọc dữ liệu...", "loading");
                 fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'get_info', maSP: decodedText, trans_date: dateInput.value }) })
-                .then(res => res.json()).then(data => {
-                    scannerSection.style.display = "none"; inputForm.style.display = "block"; statusDiv.style.display = "none";
-                    currentScreen = "FORM"; previousScreen = "MENU"; document.getElementById('group-search').style.display = "none";
-                    
-                    if(data.isNew) {
-                        currentExpectedQty = 0;
-                        document.getElementById('sp-qty').style.display = "block";
-                        document.getElementById('sp-qty').style.backgroundColor = "#ffe6e6";
-                        document.getElementById('sp-qty').innerHTML = "HÀNG NÀY MỚI TINH<br><span style='font-size:14px; font-weight:normal; color:#555;'>Chưa có sổ sách</span>";
-                        currentFormState = "NEW_INFO"; updateHeader('FORM');
-                        newItemSection.style.display = "block"; transDetails.style.display = "none";
-                        let catSelect = document.getElementById('prod-category'); if(catSelect.options.length > 0) catSelect.selectedIndex = 0;
-                        document.getElementById('prod-name').disabled = false; document.getElementById('kyc-vendor').value = "";
-                        renderKYCFields(); 
-                    } else {
-                        renderDetailQuantityBox(data.tenSP, data.opening, data.inputsToday, data.currentEnding);
-                        currentFormState = "TRANS_INFO"; updateHeader('FORM');
-                        document.getElementById('prod-name').value = data.tenSP; 
-                        newItemSection.style.display = "none"; transDetails.style.display = "block";
-                        document.getElementById('input-amount').value = ""; transTypeSelect.value = "COUNT"; toggleFormLogic(); 
-                    }
-                }).catch(e => { showStatus("Lỗi mạng.", "error"); setTimeout(goBack, 2000); });
+                    .then(res => res.json()).then(data => {
+                        scannerSection.style.display = "none"; inputForm.style.display = "block"; statusDiv.style.display = "none";
+                        currentScreen = "FORM"; previousScreen = "MENU"; document.getElementById('group-search').style.display = "none";
+                        if (data.isNew) {
+                            currentExpectedQty = 0;
+                            document.getElementById('sp-qty').style.display = "block";
+                            document.getElementById('sp-qty').style.backgroundColor = "#ffe6e6";
+                            document.getElementById('sp-qty').innerHTML = "HÀNG NÀY MỚI TINH<br><span style='font-size:14px; font-weight:normal; color:#555;'>Chưa có sổ sách</span>";
+                            currentFormState = "NEW_INFO"; updateHeader('FORM');
+                            newItemSection.style.display = "block"; transDetails.style.display = "none";
+                            let catSelect = document.getElementById('prod-category'); if (catSelect.options.length > 0) catSelect.selectedIndex = 0;
+                            document.getElementById('prod-name').disabled = false; document.getElementById('kyc-vendor').value = "";
+                            renderKYCFields();
+                        } else {
+                            renderDetailQuantityBox(data.tenSP, data.opening, data.inputsToday, data.currentEnding);
+                            currentFormState = "TRANS_INFO"; updateHeader('FORM');
+                            document.getElementById('prod-name').value = data.tenSP;
+                            newItemSection.style.display = "none"; transDetails.style.display = "block";
+                            document.getElementById('input-amount').value = ""; transTypeSelect.value = "COUNT"; toggleFormLogic();
+                        }
+                    }).catch(() => { showToast("📶 Lỗi mạng khi quét mã.", "error"); setTimeout(goBack, 2000); });
             });
         }
 
         function openManual() {
             formMode = "MANUAL"; currentScannedCode = ""; currentScreen = "FORM"; previousScreen = "MENU";
-            mainMenu.style.display = "none"; inputForm.style.display = "block"; 
+            mainMenu.style.display = "none"; inputForm.style.display = "block";
             currentFormState = "SELECT_PROD"; updateHeader('FORM');
             document.getElementById('group-search').style.display = "block";
             newItemSection.style.display = "none"; transDetails.style.display = "none";
@@ -476,152 +833,179 @@
         }
 
         function onManualSelect() {
-            let val = manualProdInput.value; if(!val.trim()) return;
+            let val = manualProdInput.value; if (!val.trim()) return;
             let found = cachedProducts.find(p => `${p.maSP} - ${p.tenSP}` === val);
-            
-            showStatus(`Đang tìm...`, "loading");
+            showStatus("Đang tìm...", "loading");
             let queryCode = found ? found.maSP : val;
             fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'get_info', maSP: queryCode, trans_date: dateInput.value }) })
-            .then(res => res.json()).then(data => {
-                statusDiv.style.display = "none";
-                if(data.isNew) {
-                    currentExpectedQty = 0;
-                    currentFormState = "NEW_INFO"; updateHeader('FORM');
-                    document.getElementById('sp-qty').style.display = "block";
-                    document.getElementById('sp-qty').style.backgroundColor = "#ffe6e6";
-                    document.getElementById('sp-qty').innerHTML = "HÀNG NÀY MỚI TINH";
-                    newItemSection.style.display = "block"; transDetails.style.display = "none";
-                    let catSelect = document.getElementById('prod-category'); if(catSelect.options.length > 0) catSelect.selectedIndex = 0;
-                    document.getElementById('prod-name').disabled = false; document.getElementById('kyc-vendor').value = "";
-                    renderKYCFields(); document.getElementById('prod-name').value = val; 
-                } else {
-                    renderDetailQuantityBox(data.tenSP, data.opening, data.inputsToday, data.currentEnding);
-                    currentFormState = "TRANS_INFO"; updateHeader('FORM');
-                    newItemSection.style.display = "none"; transDetails.style.display = "block";
-                    document.getElementById('input-amount').value = ""; transTypeSelect.value = "COUNT"; toggleFormLogic(); 
-                }
-            });
+                .then(res => res.json()).then(data => {
+                    statusDiv.style.display = "none";
+                    if (data.isNew) {
+                        currentExpectedQty = 0;
+                        currentFormState = "NEW_INFO"; updateHeader('FORM');
+                        document.getElementById('sp-qty').style.display = "block";
+                        document.getElementById('sp-qty').style.backgroundColor = "#ffe6e6";
+                        document.getElementById('sp-qty').innerHTML = "HÀNG NÀY MỚI TINH";
+                        newItemSection.style.display = "block"; transDetails.style.display = "none";
+                        let catSelect = document.getElementById('prod-category'); if (catSelect.options.length > 0) catSelect.selectedIndex = 0;
+                        document.getElementById('prod-name').disabled = false; document.getElementById('kyc-vendor').value = "";
+                        renderKYCFields(); document.getElementById('prod-name').value = val;
+                    } else {
+                        renderDetailQuantityBox(data.tenSP, data.opening, data.inputsToday, data.currentEnding);
+                        currentFormState = "TRANS_INFO"; updateHeader('FORM');
+                        newItemSection.style.display = "none"; transDetails.style.display = "block";
+                        document.getElementById('input-amount').value = ""; transTypeSelect.value = "COUNT"; toggleFormLogic();
+                    }
+                }).catch(() => showToast("📶 Lỗi mạng khi tìm sản phẩm.", "error"));
         }
 
         function confirmNewItemInfo() {
-            if(!document.getElementById('prod-name').value.trim()) { alert("Điền tên đã cô chú."); return; }
+            if (!document.getElementById('prod-name').value.trim()) {
+                showToast("⚠️ Chưa điền tên sản phẩm!", "warning"); return;
+            }
             currentFormState = "TRANS_INFO"; updateHeader('FORM');
             newItemSection.style.display = "none"; transDetails.style.display = "block";
-            document.getElementById('input-amount').value = ""; transTypeSelect.value = (currentListMode === "STOCK") ? "COUNT" : "IN"; toggleFormLogic(); 
+            document.getElementById('input-amount').value = "";
+            transTypeSelect.value = (currentListMode === "STOCK") ? "COUNT" : "IN"; toggleFormLogic();
         }
 
         function jumpToManualFromInv(maSP, tenSP, opening, inputsToday, currentEnding, mode) {
-            formMode = "MANUAL"; currentScannedCode = ""; currentScreen = "FORM"; previousScreen = "LIST"; 
-            inventorySection.style.display = "none"; inputForm.style.display = "block"; 
-            currentFormState = "TRANS_INFO"; updateHeader('FORM'); document.getElementById('group-search').style.display = "block";
+            formMode = "MANUAL"; currentScannedCode = ""; currentScreen = "FORM"; previousScreen = "LIST";
+            inventorySection.style.display = "none"; inputForm.style.display = "block";
+            currentFormState = "TRANS_INFO"; updateHeader('FORM');
+            document.getElementById('group-search').style.display = "block";
             newItemSection.style.display = "none"; transDetails.style.display = "block";
-            
-            manualProdInput.value = `${maSP} - ${tenSP}`; 
+            manualProdInput.value = `${maSP} - ${tenSP}`;
             renderDetailQuantityBox(tenSP, opening, inputsToday, currentEnding);
-            
-            document.getElementById('input-amount').value = ""; 
+            document.getElementById('input-amount').value = "";
             dateInput.value = listDateFilter.value;
             transTypeSelect.value = (mode === "STOCK") ? "COUNT" : "IN"; toggleFormLogic(); statusDiv.style.display = "none";
         }
 
         function submitUpdate() {
-            if(currentFormState !== "TRANS_INFO") return;
-            
+            if (currentFormState !== "TRANS_INFO") return;
             let amount = Number(document.getElementById('input-amount').value);
             let transType = transTypeSelect.value;
-            
+
             if (transType === "COUNT" && amount > currentExpectedQty) {
-                alert(`⚠️ LỖI SỐ LIỆU!\n\nTồn dự kiến: ${currentExpectedQty}\nĐếm thực tế: ${amount}\n\n=> Có hàng nhập chưa ghi sổ. Vui lòng chọn "Nhập Kho" trước!`);
+                showToast(`⚠️ Tồn dự kiến: ${currentExpectedQty} | Đếm thực tế: ${amount} — Có hàng nhập chưa ghi sổ!`, "warning");
                 return;
             }
-
-            if (amount === "" || isNaN(amount)) { alert("Chưa nhập Số lượng!"); return; }
+            if (document.getElementById('input-amount').value === "" || isNaN(amount)) {
+                showToast("⚠️ Chưa nhập số lượng!", "warning"); return;
+            }
 
             let prodName = "", maSP = "", category = "KHÁC";
-
             if (formMode === "SCAN") {
                 maSP = currentScannedCode; prodName = document.getElementById('prod-name').value;
-                if (!document.getElementById('prod-name').disabled) category = document.getElementById('prod-category').value; 
-            } else { 
+                if (!document.getElementById('prod-name').disabled) category = document.getElementById('prod-category').value;
+            } else {
                 if (document.getElementById('group-search').style.display === "none") {
                     maSP = ""; prodName = document.getElementById('prod-name').value; category = document.getElementById('prod-category').value;
                 } else {
                     let val = manualProdInput.value;
-                    if (val.includes(" - ")) { maSP = val.split(" - ")[0]; prodName = val.split(" - ")[1]; } 
+                    if (val.includes(" - ")) { maSP = val.split(" - ")[0]; prodName = val.split(" - ")[1]; }
                     else { maSP = ""; prodName = document.getElementById('prod-name').value; category = document.getElementById('prod-category').value; }
                 }
             }
 
-            showStatus(`Đang lưu dữ liệu...`, "loading");
-            inputForm.style.display = "none"; btnHeadSave.style.display = "none"; 
+            showStatus("Đang lưu dữ liệu...", "loading");
+            inputForm.style.display = "none"; btnHeadSave.style.display = "none";
 
             fetch(API_URL, {
-                method: 'POST', 
-                body: JSON.stringify({ 
-                    action: 'update', maSP: maSP, prod_name: prodName, category: category, 
-                    amount: amount, trans_type: transType, 
-                    trans_date: dateInput.value, obj_name: transType === "IN" ? objSelect.value : "" 
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'update', maSP: maSP, prod_name: prodName, category: category,
+                    amount: amount, trans_type: transType,
+                    trans_date: dateInput.value, obj_name: transType === "IN" ? objSelect.value : ""
                 })
             }).then(res => res.json()).then(data => {
-                if(data.status === 'success') { showStatus(data.message, "success"); fetchDataInit(); } 
-                else { showStatus(`Lỗi: ${data.message}`, "error"); setTimeout(goBack, 3000); }
-            }).catch(e => { showStatus("Lỗi kết nối!", "error"); setTimeout(goBack, 3000); });
+                if (data.status === 'success') {
+                    showStatus(data.message, "success");
+                    showToast("✅ " + data.message, "success");
+                    fetchDataInit();
+                } else {
+                    showToast("❌ Lỗi: " + data.message, "error");
+                    showStatus("Lỗi: " + data.message, "error");
+                    setTimeout(goBack, 3000);
+                }
+            }).catch(() => {
+                showToast("📶 Lỗi kết nối khi lưu!", "error");
+                showStatus("Lỗi kết nối!", "error");
+                setTimeout(goBack, 3000);
+            });
         }
 
         function openInventory(mode) {
             currentListMode = mode; currentScreen = "LIST"; previousScreen = "MENU";
-            mainMenu.style.display = "none"; inventorySection.style.display = "block"; updateHeader('LIST'); document.getElementById('inv-search').value = ""; 
-            fetchInventoryForDate(); 
+            mainMenu.style.display = "none"; inventorySection.style.display = "block";
+            updateHeader('LIST'); document.getElementById('inv-search').value = "";
+            fetchInventoryForDate();
         }
 
-        function fetchInventoryForDate() {
+        // =============================================
+        // fetchInventoryForDate — ĐÃ SỬA: hỗ trợ callback, chặn double
+        // =============================================
+        function fetchInventoryForDate(callback) {
+            if (isLoading && !callback) {
+                showToast("⏳ Đang tải, vui lòng chờ...", "warning");
+                return;
+            }
             let selectedDate = listDateFilter.value;
             showStatus("Đang tải dữ liệu...", "loading");
-            let listDiv = document.getElementById('inventory-list'); listDiv.innerHTML = ""; 
+            document.getElementById('inventory-list').innerHTML = "";
 
             fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'get_inventory', trans_date: selectedDate }) })
-            .then(res => res.json()).then(data => {
-                if(data.status === 'success') {
-                    globalInventory = data.inventory; statusDiv.style.display = "none"; applyFilters(); 
-                }
-            }).catch(e => showStatus("Lỗi mạng!", "error"));
+                .then(res => res.json()).then(data => {
+                    if (data.status === 'success') {
+                        globalInventory = data.inventory;
+                        statusDiv.style.display = "none";
+                        applyFilters();
+                        showToast("✅ Đã tải xong dữ liệu!", "success");
+                    } else {
+                        showToast("❌ Không lấy được dữ liệu kho.", "error");
+                    }
+                    if (callback) callback();
+                }).catch(() => {
+                    showToast("📶 Lỗi mạng khi tải tồn kho.", "error");
+                    if (callback) callback();
+                });
         }
 
         function filterCategory(catName, btnElement) {
             currentFilterCat = catName;
             let chips = document.getElementsByClassName('cat-chip');
-            for(let i=0; i<chips.length; i++) chips[i].classList.remove('active'); 
+            for (let i = 0; i < chips.length; i++) chips[i].classList.remove('active');
             btnElement.classList.add('active'); applyFilters();
         }
 
         function applyFilters() {
             let searchText = document.getElementById('inv-search').value.toLowerCase();
-            let listDiv = document.getElementById('inventory-list'); listDiv.innerHTML = ""; 
-            if(globalInventory.length === 0) { listDiv.innerHTML = "<p style='text-align:center; color:#888;'>Chưa có dữ liệu</p>"; return; }
-
+            let listDiv = document.getElementById('inventory-list');
+            listDiv.innerHTML = "";
+            if (globalInventory.length === 0) { listDiv.innerHTML = "<p style='text-align:center; color:#888;'>Chưa có dữ liệu</p>"; return; }
             globalInventory.forEach(item => {
                 let matchCat = (currentFilterCat === "TẤT CẢ" || item.category === currentFilterCat);
                 if (matchCat && item.tenSP.toLowerCase().includes(searchText)) {
                     let div = document.createElement('div'); div.className = "inv-item";
-                    
                     let expected = item.opening + item.inputsToday;
                     let isLocked = item.currentEnding !== "";
                     let statusColor = isLocked ? "#008000" : "#0056b3";
                     let statusText = isLocked ? `CHỐT: ${item.currentEnding}` : `DỰ KIẾN: ${expected}`;
-
-                    div.onclick = function() { jumpToManualFromInv(item.maSP, item.tenSP, item.opening, item.inputsToday, item.currentEnding, currentListMode); };
-                    
+                    div.onclick = function () { jumpToManualFromInv(item.maSP, item.tenSP, item.opening, item.inputsToday, item.currentEnding, currentListMode); };
                     div.innerHTML = `
-                        <div class="inv-name">${item.tenSP}</div>
-                        <div class="inv-row">
-                            <span>Đầu: ${item.opening} &nbsp;|&nbsp; Nhập: ${item.inputsToday}</span>
-                            <span class="inv-status" style="color: ${statusColor};">${statusText}</span>
-                        </div>
-                    `;
+                    <div class="inv-name">${item.tenSP}</div>
+                    <div class="inv-row">
+                        <span>Đầu: ${item.opening} &nbsp;|&nbsp; Nhập: ${item.inputsToday}</span>
+                        <span class="inv-status" style="color: ${statusColor};">${statusText}</span>
+                    </div>
+                `;
                     listDiv.appendChild(div);
                 }
             });
         }
     </script>
+
 </body>
+
 </html>
