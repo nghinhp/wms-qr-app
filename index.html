@@ -6,36 +6,31 @@
     <title>Phần Mềm Kho Đơn Giản</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
-        /* Tùy chỉnh cực to rõ cho người lớn tuổi */
         body { font-family: Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 5px; color: #111; }
         
-        /* CONTAINER GÓI GỌN GIAO DIỆN */
         .container { background: white; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto; position: relative; min-height: 96vh; display: flex; flex-direction: column; overflow: hidden; }
 
         /* THANH HEADER ĐÃ ĐƯỢC TỐI GIẢN */
         .top-bar { position: sticky; top: 0; background-color: #fff; display: flex; align-items: center; justify-content: center; padding: 15px 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); z-index: 1000; border-bottom: 1px solid #ddd; min-height: 35px;}
-        
-        /* Tiêu đề ẩn icon ở chi tiết */
         .top-title { font-size: 24px; font-weight: bold; color: #003366; text-align: center; width: 100%; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
         
-        /* Nút ĐÓNG màu Đỏ nổi bật, ko icon */
+        /* CÁC NÚT TRÊN TOP BAR */
         .top-btn { position: absolute; padding: 12px 18px; font-size: 18px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; color: white; display: none; z-index: 1001;}
-        .btn-back { left: 10px; background-color: #d32f2f; /* Màu đỏ */ }
-        .btn-save { right: 10px; background-color: #0056b3; /* Màu xanh */ }
+        .btn-back { left: 10px; background-color: #d32f2f; /* Màu Đỏ */ }
+        .btn-save { right: 10px; background-color: #0056b3; /* Màu Xanh Dương */ }
+        .btn-new-item { right: 10px; background-color: #008000; /* Màu Xanh Lá */ }
 
-        /* Vùng nội dung chính */
         .main-content { padding: 15px; flex-grow: 1; display: flex; flex-direction: column; }
         
         /* MENU CHÍNH CÓ ICON TO */
         .menu-btn { display: flex; align-items: center; justify-content: center; width: 100%; padding: 22px; margin-bottom: 15px; font-size: 22px; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); box-sizing: border-box;}
-        .menu-btn span { margin-right: 15px; font-size: 28px; } /* Icon trong menu */
+        .menu-btn span { margin-right: 15px; font-size: 28px; } 
         
         .btn-menu-scan { background-color: #0056b3; }
         .btn-menu-manual { background-color: #d97706; }
         .btn-menu-view { background-color: #008000; }
-        .btn-menu-stock { background-color: #6a1b9a; } /* Màu tím cho mục mới */
+        .btn-menu-stock { background-color: #6a1b9a; } 
 
-        /* Các phần chi tiết ẩn icon */
         #scanner-section, #input-form, #inventory-section { display: none; flex-direction: column; flex-grow: 1;}
         #reader { width: 100%; border-radius: 10px; border: 3px solid #0056b3; overflow: hidden; margin-bottom: 20px; }
         
@@ -47,21 +42,17 @@
         input:focus, select:focus { border-color: #0056b3; outline: none; background-color: #f0f8ff;}
         input:disabled { background-color: #e0e0e0; color: #555; }
         
-        /* Nút xác nhận hàng mới (ko icon) */
         .btn-confirm-new { width: 100%; padding: 15px; background-color: #0056b3; color: white; font-weight: bold; font-size: 18px; border: none; border-radius: 8px; cursor: pointer; margin-top: 15px; }
 
-        /* Khung thông báo */
         #status { padding: 20px; border-radius: 10px; font-weight: bold; font-size: 20px; margin-top: auto; text-align: center; display: none; line-height: 1.4;}
         .success { background-color: #ccffcc; color: #006600; display: block !important;}
         .error { background-color: #ffcccc; color: #cc0000; display: block !important;}
         .loading { background-color: #e6f2ff; color: #003366; display: block !important;}
 
         /* BỘ LỌC TỒN KHO & SCROLLBAR */
-        .inventory-controls { position: sticky; top: 70px; background: white; padding: 10px 0; z-index: 999; border-bottom: 1px solid #eee; margin-bottom: 10px;}
-        
+        .inventory-controls { position: sticky; top: 65px; background: white; padding: 10px 0; z-index: 999; border-bottom: 1px solid #eee; margin-bottom: 10px;}
         .category-scroll { display: flex; overflow-x: auto; gap: 10px; padding-bottom: 10px; white-space: nowrap; -webkit-overflow-scrolling: touch;}
         
-        /* Scrollbar rõ ràng */
         .category-scroll::-webkit-scrollbar { height: 8px; } 
         .category-scroll::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 5px; }
         .category-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 5px; }
@@ -72,13 +63,11 @@
         .search-box { margin-bottom: 5px; }
         .search-box input { border: 2px solid #008000; background-color: #f0fff0; padding: 15px;}
         
-        /* DANH SÁCH CHỈ HIỆN TÊN, KHÔNG MÃ */
         #inventory-list { flex-grow: 1; overflow-y: auto;}
         .inv-item { display: flex; justify-content: space-between; align-items: center; padding: 20px 10px; border-bottom: 2px solid #ddd; text-align: left; cursor: pointer; border-radius: 8px;}
         .inv-item:active { background-color: #e0e0e0; } 
         
         .inv-name { font-weight: bold; color: #111; font-size: 23px; flex-grow: 1; padding-right: 10px; word-wrap: break-word;}
-        /* inv-code đã bị bỏ */
         .inv-qty { font-weight: bold; color: #008000; font-size: 28px; white-space: nowrap;}
     </style>
 </head>
@@ -88,6 +77,7 @@
         <div class="top-bar">
             <button id="top-btn-back" class="top-btn btn-back" onclick="goBackToMenu()">ĐÓNG</button>
             <div id="top-title" class="top-title">QUẢN LÝ KHO</div>
+            <button id="top-btn-new" class="top-btn btn-new-item" onclick="openNewItemForm()">TẠO MÃ</button>
             <button id="top-btn-save" class="top-btn btn-save" onclick="submitUpdate()">LƯU</button>
         </div>
 
@@ -113,15 +103,13 @@
                         <button class="cat-chip" onclick="filterCategory('NƯỚC NGỌT', this)">NƯỚC NGỌT</button>
                         <button class="cat-chip" onclick="filterCategory('NƯỚC SUỐI', this)">NƯỚC SUỐI</button>
                         <button class="cat-chip" onclick="filterCategory('NƯỚC TRÀ', this)">NƯỚC TRÀ</button>
-                        <button class="cat-chip" onclick="filterCategory('KEM', this)">KEM</option>
+                        <button class="cat-chip" onclick="filterCategory('KEM', this)">KEM</button>
                         <button class="cat-chip" onclick="filterCategory('SỮA', this)">SỮA</button>
                     </div>
-
                     <div class="search-box">
                         <input type="text" id="inv-search" placeholder="🔍 Gõ tên sản phẩm để tìm..." oninput="applyFilters()">
                     </div>
                 </div>
-                
                 <div id="inventory-list"></div>
             </div>
 
@@ -185,7 +173,7 @@
     </div>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbxZi7yFbogjlAfeRKAUkVXKnkYYli0MmByKCpVSNwuK-9_CWLHBijH8fF5trnmIX1yW0A/exec"; 
+	const API_URL = "https://script.google.com/macros/s/AKfycbxZi7yFbogjlAfeRKAUkVXKnkYYli0MmByKCpVSNwuK-9_CWLHBijH8fF5trnmIX1yW0A/exec";
         
         const mainMenu = document.getElementById('main-menu');
         const scannerSection = document.getElementById('scanner-section');
@@ -193,10 +181,10 @@
         const inputForm = document.getElementById('input-form');
         const statusDiv = document.getElementById('status');
         
-        // Header
         const topTitle = document.getElementById('top-title');
         const btnHeadBack = document.getElementById('top-btn-back');
         const btnHeadSave = document.getElementById('top-btn-save');
+        const btnHeadNew = document.getElementById('top-btn-new');
 
         const transTypeSelect = document.getElementById('trans-type');
         const objSelect = document.getElementById('obj-select');
@@ -209,8 +197,8 @@
         let isProcessing = false;
         let currentScannedCode = ""; 
         let formMode = "SCAN"; 
-        let currentFormState = "SELECT_PROD"; // SELECT_PROD, NEW_INFO, TRANS_INFO
-        let currentListMode = "VIEW"; // VIEW (Tồn), STOCK (Kiểm)
+        let currentFormState = "SELECT_PROD"; 
+        let currentListMode = "VIEW"; 
         
         let cachedCustomers = [], cachedVendors = [], cachedProducts = [];
         let globalInventory = []; 
@@ -229,7 +217,6 @@
                 if(data.status === 'success') {
                     cachedCustomers = data.customers; cachedVendors = data.vendors; cachedProducts = data.products;
                     let dl = document.getElementById('prod-datalist'); dl.innerHTML = "";
-                    // Datalist giữ Mã - Tên để dễ search, nhưng list hiển thị chỉ hiện Tên
                     cachedProducts.forEach(p => {
                         let opt = document.createElement('option'); opt.value = `${p.maSP} - ${p.tenSP}`; dl.appendChild(opt);
                     });
@@ -241,21 +228,27 @@
         function getToday() { return new Date().toISOString().split('T')[0]; }
         function showStatus(msg, type) { statusDiv.innerHTML = msg; statusDiv.className = type; statusDiv.style.display="block";}
 
-        // --- CẬP NHẬT HEADER (KHÔNG ICON) ---
+        // --- CẬP NHẬT HEADER THÔNG MINH ---
         function updateHeader(viewName) {
+            btnHeadBack.style.display = "none"; 
+            btnHeadSave.style.display = "none";
+            btnHeadNew.style.display = "none";
+
             if(viewName === 'MENU') {
-                topTitle.innerText = "QUẢN LÝ KHO TỔNG"; // Về Menu hiện tên tổng
-                btnHeadBack.style.display = "none"; btnHeadSave.style.display = "none";
+                topTitle.innerText = "QUẢN LÝ KHO TỔNG"; 
             } else if(viewName === 'LIST') {
-                topTitle.innerText = ""; // Bỏ hẳn tên ở list, nhường chỗ filter
-                btnHeadBack.style.display = "block"; btnHeadSave.style.display = "none";
+                topTitle.innerText = ""; 
+                btnHeadBack.style.display = "block"; 
+                btnHeadNew.style.display = "block"; // HIỆN NÚT TẠO MÃ MÀU XANH
             } else if(viewName === 'SCAN') {
                 topTitle.innerText = "QUÉT MÃ";
-                btnHeadBack.style.display = "block"; btnHeadSave.style.display = "none";
+                btnHeadBack.style.display = "block"; 
             } else if(viewName === 'FORM') {
-                topTitle.innerText = "GHI SỔ"; // Ko icon
+                topTitle.innerText = "GHI SỔ"; 
                 btnHeadBack.style.display = "block";
-                btnHeadSave.style.display = (currentFormState === "TRANS_INFO") ? "block" : "none";
+                if(currentFormState === "TRANS_INFO") {
+                    btnHeadSave.style.display = "block"; // CHỈ HIỆN LƯU KHI ĐÃ SẴN SÀNG NHẬP SỐ
+                }
             }
         }
 
@@ -278,12 +271,32 @@
                 
                 let opt = document.createElement('option'); opt.value = "Nhà cung cấp lẻ"; opt.text = "Nhà cung cấp lẻ"; objSelect.appendChild(opt);
                 cachedVendors.forEach(name => { let o = document.createElement('option'); o.value = name; o.text = name; objSelect.appendChild(o); });
-            } else { // COUNT
+            } else { 
                 labelAmount.innerText = "THỰC TẾ TRÊN KỆ ĐANG CÓ MẤY CÁI?";
                 labelAmount.style.color = "#d10000";
                 document.getElementById('input-amount').style.color = "#d10000";
                 document.getElementById('group-obj').style.display = "none"; 
             }
+        }
+
+        // --- NÚT "TẠO MÃ" TRỰC TIẾP ---
+        function openNewItemForm() {
+            formMode = "MANUAL"; currentScannedCode = ""; 
+            inventorySection.style.display = "none"; inputForm.style.display = "block"; 
+            
+            // Ẩn ô tìm kiếm
+            document.getElementById('group-search').style.display = "none"; 
+            document.getElementById('display-maSP').style.display = "none";
+            document.getElementById('sp-qty').innerText = "HÀNG MỚI TINH";
+            
+            currentFormState = "NEW_INFO"; updateHeader('FORM');
+            newItemSection.style.display = "block"; transDetails.style.display = "none";
+            
+            document.getElementById('prod-name').value = ""; document.getElementById('prod-name').disabled = false;
+            document.getElementById('prod-category').parentElement.style.display = "block";
+            
+            transTypeSelect.value = (currentListMode === "STOCK") ? "COUNT" : "IN";
+            toggleFormLogic(); 
         }
 
         function openScanner() {
@@ -305,23 +318,19 @@
                     scannerSection.style.display = "none"; inputForm.style.display = "block";
                     statusDiv.style.display = "none";
                     document.getElementById('group-search').style.display = "none";
-                    document.getElementById('display-maSP').style.display = "none"; // Ẩn mã ở labels
+                    document.getElementById('display-maSP').style.display = "none"; 
                     document.getElementById('sp-qty').innerText = `Tồn đang báo: ${data.currentQty}`;
                     
                     if(data.isNew) {
-                        currentFormState = "NEW_INFO";
-                        updateHeader('FORM');
+                        currentFormState = "NEW_INFO"; updateHeader('FORM');
                         newItemSection.style.display = "block"; transDetails.style.display = "none";
                         document.getElementById('prod-name').value = ""; document.getElementById('prod-name').disabled = false;
                         document.getElementById('prod-category').parentElement.style.display = "block";
                     } else {
-                        // Quét mã hàng cũ, nhảy thẳng vào nhập liệu
-                        currentFormState = "TRANS_INFO";
-                        updateHeader('FORM');
-                        document.getElementById('prod-name').value = data.tenSP; // Chỉ hiện tên
+                        currentFormState = "TRANS_INFO"; updateHeader('FORM');
+                        document.getElementById('prod-name').value = data.tenSP; 
                         newItemSection.style.display = "none"; transDetails.style.display = "block";
                         document.getElementById('input-amount').value = ""; document.getElementById('trans-date').value = getToday();
-                        // Nếu quét mặc định là Chốt tồn nhe cô chú
                         transTypeSelect.value = "COUNT"; toggleFormLogic(); 
                     }
                 }).catch(e => { showStatus("Mạng yếu, thử lại nha.", "error"); setTimeout(goBackToMenu, 2000); });
@@ -331,8 +340,7 @@
         function openManual() {
             formMode = "MANUAL"; currentScannedCode = ""; mainMenu.style.display = "none";
             inputForm.style.display = "block"; 
-            currentFormState = "SELECT_PROD";
-            updateHeader('FORM');
+            currentFormState = "SELECT_PROD"; updateHeader('FORM');
             document.getElementById('group-search').style.display = "block";
             document.getElementById('display-maSP').style.display = "none";
             newItemSection.style.display = "none"; transDetails.style.display = "none";
@@ -345,14 +353,12 @@
             if(!val.trim()) return;
             let found = cachedProducts.find(p => `${p.maSP} - ${p.tenSP}` === val);
             if(found) {
-                // Hàng cũ, nhảy vào nhập liệu
                 currentFormState = "TRANS_INFO"; updateHeader('FORM');
                 document.getElementById('sp-qty').innerText = `Món: ${found.tenSP} | Tồn: ${found.qty}`; 
                 newItemSection.style.display = "none"; transDetails.style.display = "block";
                 document.getElementById('input-amount').value = ""; document.getElementById('trans-date').value = getToday();
                 transTypeSelect.value = "COUNT"; toggleFormLogic(); 
             } else {
-                // Gõ tên mới lạ, nhảy vào điền thông tin
                 currentFormState = "NEW_INFO"; updateHeader('FORM');
                 document.getElementById('sp-qty').innerText = `MÓN NÀY MỚI TINH`;
                 newItemSection.style.display = "block"; transDetails.style.display = "none";
@@ -361,15 +367,13 @@
             }
         }
 
-        // Bổ sung nút xác nhận điền xong tên hàng mới
         function confirmNewItemInfo() {
             let pName = document.getElementById('prod-name').value;
             if(!pName.trim()) { alert("Cô chú điền tên sản phẩm giùm con."); return; }
-            // Ẩn khu điền tên, hiện khu nhập số
             currentFormState = "TRANS_INFO"; updateHeader('FORM');
             newItemSection.style.display = "none"; transDetails.style.display = "block";
             document.getElementById('input-amount').value = ""; document.getElementById('trans-date').value = getToday();
-            transTypeSelect.value = "COUNT"; toggleFormLogic(); 
+            transTypeSelect.value = (currentListMode === "STOCK") ? "COUNT" : "IN"; toggleFormLogic(); 
         }
 
         function jumpToManualFromInv(maSP, tenSP, qty, mode) {
@@ -382,7 +386,6 @@
             document.getElementById('sp-qty').innerText = `Món: ${tenSP} | Tồn: ${qty}`;
             document.getElementById('input-amount').value = ""; document.getElementById('trans-date').value = getToday();
             
-            // Dựa vào nút bấm ở Menu để chọn mặc định
             transTypeSelect.value = (mode === "STOCK") ? "COUNT" : "IN";
             toggleFormLogic(); statusDiv.style.display = "none";
         }
@@ -397,14 +400,19 @@
                 prodName = pNameInput.value;
                 if (!pNameInput.disabled) { category = document.getElementById('prod-category').value; }
             } else { 
-                let val = manualProdInput.value;
-                if (!val.trim()) { alert("Cô chú chưa chọn món nào!"); return; }
-                if (val.includes(" - ")) {
-                    maSP = val.split(" - ")[0]; prodName = val.split(" - ")[1];
-                } else {
-                    maSP = ""; // Hàng mới tinh tự tạo mã
-                    prodName = document.getElementById('prod-name').value; 
+                // Nếu thanh tìm kiếm bị ẩn, nghĩa là đi từ nút "TẠO MÃ"
+                if (document.getElementById('group-search').style.display === "none") {
+                    maSP = ""; 
+                    prodName = document.getElementById('prod-name').value;
                     category = document.getElementById('prod-category').value;
+                } else {
+                    let val = manualProdInput.value;
+                    if (!val.trim()) { alert("Cô chú chưa chọn món nào!"); return; }
+                    if (val.includes(" - ")) {
+                        maSP = val.split(" - ")[0]; prodName = val.split(" - ")[1];
+                    } else {
+                        maSP = ""; prodName = document.getElementById('prod-name').value; category = document.getElementById('prod-category').value;
+                    }
                 }
             }
 
@@ -429,9 +437,9 @@
             }).catch(e => { showStatus("Lỗi kết nối!", "error"); setTimeout(goBackToMenu, 4000); });
         }
 
-        // --- HỆ THỐNG DANH SÁCH & LỌC ---
+        // --- DANH SÁCH & LỌC ---
         function openInventory(mode) {
-            currentListMode = mode; // Lưu chế độ: VIEW (Tồn) hoặc STOCK (Kiểm)
+            currentListMode = mode; 
             mainMenu.style.display = "none"; inventorySection.style.display = "block";
             updateHeader('LIST'); document.getElementById('inv-search').value = ""; 
             
@@ -468,14 +476,11 @@
 
             globalInventory.forEach(item => {
                 let matchCat = (currentFilterCat === "TẤT CẢ" || item.category === currentFilterCat);
-                // Tìm theo tên, ko cần tìm theo mã
                 let matchText = item.tenSP.toLowerCase().includes(searchText);
 
                 if (matchCat && matchText) {
                     let div = document.createElement('div'); div.className = "inv-item";
-                    // Truyền mode để biết mặc định IN hay COUNT
                     div.onclick = function() { jumpToManualFromInv(item.maSP, item.tenSP, item.ending, currentListMode); };
-                    // CHỈ HIỆN TÊN, KHÔNG HIỆN MÃ
                     div.innerHTML = `<div class="inv-name">${item.tenSP}</div><div class="inv-qty">${item.ending}</div>`;
                     listDiv.appendChild(div);
                 }
